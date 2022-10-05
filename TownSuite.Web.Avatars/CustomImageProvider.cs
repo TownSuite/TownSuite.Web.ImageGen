@@ -5,23 +5,23 @@ namespace TownSuite.Web.Avatars;
 
 public class CustomImageProvider : IImageProvider
 {
-    
     // https://bartwullems.blogspot.com/2022/03/imagesharpwebcreate-your-own-image.html
-    
     private readonly IImageRepository _imageRepository;
+    private readonly IConfiguration _configuration;
 
     /// <summary>
     /// A match function used by the resolver to identify itself as the correct resolver to use.
     /// </summary>
     private Func<HttpContext, bool> _match;
 
-    public CustomImageProvider(IImageRepository repository)
+    public CustomImageProvider(IImageRepository repository, IConfiguration configuration)
     {
         _imageRepository = repository;
+        _configuration = configuration;
     }
 
     public ProcessingBehavior ProcessingBehavior { get; } = ProcessingBehavior.All;
-        
+
     public Func<HttpContext, bool> Match
     {
         get => _match ?? IsMatch;
@@ -30,21 +30,20 @@ public class CustomImageProvider : IImageProvider
 
     public async Task<IImageResolver> GetAsync(HttpContext context)
     {
-        //Extract image name from the querystring e.g. /image?id=<imagei>
-        if (context.Request.Query.TryGetValue("id", out var value))
-        { 
-            var id=value.ToString();
-            var (image, metadata)= await _imageRepository.Get(id);
-                
-            return new CustomImageResolver(image, metadata);
-        }
-        return null;
-    }            
+        // /avatar/676540b1672d727fa2f02d62965120d7?d=identicon&s=100%22
+        // Extract image name from the querystring e.g. /avatar/someid?otheroptions=123
+        // being someid as id
+        string id = context.Request.Path.Value.Split("/").LastOrDefault();
+        var (image, metadata) = await _imageRepository.Get(id);
 
-    public bool IsValidRequest(HttpContext context)=> true;
+        return new CustomImageResolver(image, metadata);
+    }
+
+    public bool IsValidRequest(HttpContext context) => true;
 
     private bool IsMatch(HttpContext context)
     {
-        return context.Request.Path.Value.Contains("image");
+        string pathMatch = _configuration.GetValue<string>("PathMatch");
+        return context.Request.Path.Value.Contains(pathMatch);
     }
 }
