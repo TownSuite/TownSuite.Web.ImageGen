@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TownSuite.Web.Avatars", "TownSuite.Web.Avatars\TownSuite.Web.Avatars.csproj", "{BC7B2524-D8EE-45EE-8CCC-76D027E50A63}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TownSuite.Web.ImageGen", "TownSuite.Web.ImageGen\TownSuite.Web.ImageGen.csproj", "{BC7B2524-D8EE-45EE-8CCC-76D027E50A63}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

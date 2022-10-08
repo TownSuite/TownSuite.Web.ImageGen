@@ -1,4 +1,5 @@
 using System.Net.Mime;
+using Jdenticon;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
@@ -6,24 +7,19 @@ using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Web;
 
-namespace TownSuite.Web.Avatars;
+namespace TownSuite.Web.ImageGen;
 
-public class GenerateImageRepo : IImageRepository
+public class GeneratePlaceholderImageRepo : IImageRepository
 {
-    public async Task<(byte[] data, ImageMetadata metadata)> Get(string id)
-    {
-        if (System.IO.File.Exists(id))
-        {
-            // FIXME: folder path
-            using var img = await SixLabors.ImageSharp.Image.LoadAsync(id);
-            return (await BinaryAsBytes(img), new ImageMetadata());
-        }
+    public string Folder { get; } = "placeholders";
 
+    public async Task<(byte[] imageData, ImageMetaData metadata)> Get(string id)
+    {    
         var font = GetFont("Hack", 25);
         var img2 = await DrawText(id, font, Color.Aqua, Random.Shared, 150, 150);
-        return (img2, new ImageMetadata());
+        var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromDays(360), img2.Length, $"{id}.png");
+        return (img2, md);
     }
 
     static async Task<byte[]> DrawText(string text,
@@ -42,6 +38,7 @@ public class GenerateImageRepo : IImageRepository
         var location = new PointF(0, (int)(imageHeight / 2.5));
         image.Mutate(x => x.DrawText(text, font,
             textColor, location));
+
         return await BinaryAsBytes(image);
     }
 
