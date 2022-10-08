@@ -8,7 +8,7 @@
     }
   },
   "profiles": {
-    "TownSuite.Web.Avatars": {
+    "TownSuite.Web.ImageGen": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

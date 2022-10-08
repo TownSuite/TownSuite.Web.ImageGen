@@ -5,7 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <RootNamespace>TownSuite.Web.Avatars</RootNamespace>
+        <RootNamespace>TownSuite.Web.ImageGen</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

@@ -1,10 +1,33 @@
+using System.Net;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Primitives;
+using SixLabors.ImageSharp;
 using TownSuite.Web.ImageGen;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 var app = builder.Build();
+
+
+if (builder.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            context.Response.ContentType = "text/plain";
+
+            var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+            await context.Response.WriteAsync(exceptionHandlerPathFeature.Error.Message);
+        });
+    });
+}
 
 app.MapGet("/avatar/{name}", async (ctx) =>
 {
@@ -32,12 +55,13 @@ RequestMetaData GetRequestMetaData(HttpContext ctx, string folder)
 {
     string id = Hash(ctx.Request.Path.Value.Split("/").LastOrDefault());
     string cacheFolder = builder.Configuration.GetValue<string>("CacheFolder");
-    
+
     int size = 0;
     int width = 80;
     int height = 80;
     StringValues strSize;
-
+    int maxWidth = builder.Configuration.GetValue<int>("MaxWidth");
+    int maxHeight = builder.Configuration.GetValue<int>("MaxHeight");
     // identicons
     ctx.Request.Query.TryGetValue("s", out strSize);
     int.TryParse(strSize, out size);
@@ -57,12 +81,23 @@ RequestMetaData GetRequestMetaData(HttpContext ctx, string folder)
 
     string path;
     if (size == 0)
-    {  
+    {
+        if (height > maxHeight || width > maxWidth)
+        {
+            throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
+        }
+
         path = System.IO.Path.Combine(cacheFolder, folder, $"{id}_{width}_{height}.png");
         return new RequestMetaData(height, width, path,
             id);
     }
-     path = System.IO.Path.Combine(cacheFolder, folder, $"{id}_{size}_{size}.png");
+
+    if (size > maxHeight || size > maxWidth)
+    {
+        throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
+    }
+
+    path = System.IO.Path.Combine(cacheFolder, folder, $"{id}_{size}_{size}.png");
     return new RequestMetaData(size, size, path,
         id);
 }
