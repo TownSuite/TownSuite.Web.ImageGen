@@ -30,11 +30,8 @@ public class GeneratePlaceholderImageRepo : IImageRepository
         int imageHeight)
     {
         using Image image = new Image<Rgba32>(imageWidth, imageHeight);
-
-        // TODO: read background color from appsettings.json
-       // Color randomColor = Color.FromRgb(Convert.ToByte(randonGen.Next(255)), Convert.ToByte(randonGen.Next(255)),
-        //    Convert.ToByte(randonGen.Next(255)));
-        Color randomColor = Color.Cornsilk;
+        Color randomColor = Color.FromRgb(Convert.ToByte(randonGen.Next(255)), Convert.ToByte(randonGen.Next(255)),
+            Convert.ToByte(randonGen.Next(255)));
         image.Mutate(x => x.Clear(randomColor));
         var location = new PointF(0, (int)(imageHeight / 2.5));
         image.Mutate(x => x.DrawText(text, font,
