@@ -1,5 +1,6 @@
 
 using System.Security.Cryptography;
+using Microsoft.Extensions.Primitives;
 
 namespace TownSuite.Web.ImageGen;
 
@@ -20,27 +21,16 @@ public class ImageProvider
         _cache = cache;
     }
     
-    public async Task<(byte[] image, ImageMetaData metadata)> GetAsync(HttpContext context)
+    public async Task<(byte[] image, ImageMetaData metadata)> GetAsync(RequestMetaData rMetaData)
     {
-        string id = Hash(context.Request.Path.Value.Split("/").LastOrDefault());
-        string cacheFolder = _configuration.GetValue<string>("CacheFolder");
-        string path = System.IO.Path.Combine(cacheFolder, _imageRepository.Folder, $"{id}.png");
-        var cacheResults = await _cache.GetAsync(path);
+        var cacheResults = await _cache.GetAsync(rMetaData);
         if (cacheResults.image != null)
         {
             return cacheResults;
         }
-        
-        var results = await _imageRepository.Get(id);
-        await _cache.Save(results.imageData, path);
+        var results = await _imageRepository.Get(rMetaData.Id, rMetaData.Width, rMetaData.Height);
+        await _cache.Save(results.imageData, rMetaData);
         return results;
-    }
-    static string Hash(string nonHashedString)
-    {
-        using var md5 = MD5.Create();
-        byte[] data = System.Text.Encoding.UTF8.GetBytes(nonHashedString);
-        byte[] retVal = md5.ComputeHash(data);
-        return BitConverter.ToString(retVal);
     }
     
 }

@@ -2,9 +2,9 @@ namespace TownSuite.Web.ImageGen;
 
 public class ImageCacheProvider : IImageCacheProvider
 {
-    public async Task<(byte[] image, ImageMetaData metadata)> GetAsync(string path)
+    public async Task<(byte[] image, ImageMetaData metadata)> GetAsync(RequestMetaData rMetaData)
     {
-        var file = new System.IO.FileInfo(path);
+        var file = new System.IO.FileInfo(rMetaData.Path);
         if (file.Exists)
         {
             await using var stream = file.OpenRead();
@@ -19,12 +19,12 @@ public class ImageCacheProvider : IImageCacheProvider
         return (null, null);
     }
 
-    public async Task Save(byte[] image, string path)
+    public async Task Save(byte[] image, RequestMetaData rMetaData)
     {
-        if (!System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(path)))
+        if (!System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(rMetaData.Path)))
         {
-            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(rMetaData.Path));
         }
-        await System.IO.File.WriteAllBytesAsync(path, image);   
+        await System.IO.File.WriteAllBytesAsync(rMetaData.Path, image);   
     }
 }
