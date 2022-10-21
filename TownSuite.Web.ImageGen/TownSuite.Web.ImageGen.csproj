@@ -22,4 +22,10 @@
       <_ContentIncludedByDefault Remove="wwwroot\is-cache\7\e\9\f\7\c\5\3\5027.png" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="fonts\*">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
