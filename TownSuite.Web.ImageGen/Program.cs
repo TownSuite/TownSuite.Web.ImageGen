@@ -1,8 +1,6 @@
 using System.Net;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.Extensions.Primitives;
-using SixLabors.ImageSharp;
 using TownSuite.Web.ImageGen;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,7 +22,7 @@ else
             context.Response.ContentType = "text/plain";
 
             var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-            await context.Response.WriteAsync(exceptionHandlerPathFeature.Error.Message);
+            await context.Response.WriteAsync(exceptionHandlerPathFeature?.Error.Message ?? "");
         });
     });
 }
@@ -56,15 +54,13 @@ RequestMetaData GetRequestMetaData(HttpContext ctx, string folder)
     string id = Hash(ctx.Request.Path.Value.Split("/").LastOrDefault());
     string cacheFolder = builder.Configuration.GetValue<string>("CacheFolder");
 
-    int size = 0;
     int width = 80;
     int height = 80;
-    StringValues strSize;
     int maxWidth = builder.Configuration.GetValue<int>("MaxWidth");
     int maxHeight = builder.Configuration.GetValue<int>("MaxHeight");
     // identicons
-    ctx.Request.Query.TryGetValue("s", out strSize);
-    int.TryParse(strSize, out size);
+    ctx.Request.Query.TryGetValue("s", out var strSize);
+    int.TryParse(strSize, out var size);
 
     // placeholders
     if (ctx.Request.Query.ContainsKey("w"))
@@ -87,7 +83,7 @@ RequestMetaData GetRequestMetaData(HttpContext ctx, string folder)
             throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
         }
 
-        path = System.IO.Path.Combine(cacheFolder, folder, $"{id}_{width}_{height}.png");
+        path = Path.Combine(cacheFolder, folder, $"{id}_{width}_{height}.png");
         return new RequestMetaData(height, width, path,
             id);
     }
@@ -97,7 +93,7 @@ RequestMetaData GetRequestMetaData(HttpContext ctx, string folder)
         throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
     }
 
-    path = System.IO.Path.Combine(cacheFolder, folder, $"{id}_{size}_{size}.png");
+    path = Path.Combine(cacheFolder, folder, $"{id}_{size}_{size}.png");
     return new RequestMetaData(size, size, path,
         id);
 }

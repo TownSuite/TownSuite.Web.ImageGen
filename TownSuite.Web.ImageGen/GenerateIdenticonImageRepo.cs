@@ -15,7 +15,7 @@ public class GenerateIdenticonImageRepo : IImageRepository
     public string Folder { get; } = "avatars";
     public async Task<(byte[] imageData, ImageMetaData metadata)> Get(string id, int width, int height)
     {
-        var ms = new MemoryStream();
+        using var ms = new MemoryStream();
         await Jdenticon.Identicon
             .FromValue(id, size: width)
             .SaveAsPngAsync(ms);

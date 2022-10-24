@@ -63,7 +63,7 @@ public class GeneratePlaceholderImageRepo : IImageRepository
 
         FontFamily family;
         collection.TryGet(fontName, out family);
-        if (family == null)
+        if (string.IsNullOrWhiteSpace(family.Name))
         {
             family = collection.Get("Hack");
         }
