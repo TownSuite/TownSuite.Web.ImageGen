@@ -5,6 +5,7 @@ using TownSuite.Web.ImageGen;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks();
 var app = builder.Build();
 
 
@@ -46,7 +47,7 @@ app.MapGet("/placeholder/{name}", async (ctx) =>
 
 
 app.UseStaticFiles();
-
+app.MapHealthChecks("/healthz");
 app.Run();
 
 RequestMetaData GetRequestMetaData(HttpContext ctx, string folder)
