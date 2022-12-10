@@ -7,7 +7,9 @@ namespace TownSuite.Web.ImageGen;
 public class RequestMetaData
 {
     public int Height { get; private set; }
+    protected bool heightChangeRequested = false;
     public int Width { get; private set; }
+    protected bool widthChangeRequested = false;
     public string Path { get; private set; }
     public string Id { get; private set; }
     public string ImageFormat { get; private set; }
@@ -28,18 +30,20 @@ public class RequestMetaData
         // identicons
         ctx.Request.Query.TryGetValue("s", out var strSize);
         int.TryParse(strSize, out var size);
-
-        // placeholders
+        
         if (ctx.Request.Query.ContainsKey("w"))
         {
             ctx.Request.Query.TryGetValue("w", out strSize);
+            
             int.TryParse(strSize, out width);
+            widthChangeRequested = true;
         }
 
         if (ctx.Request.Query.ContainsKey("h"))
         {
             ctx.Request.Query.TryGetValue("h", out strSize);
             int.TryParse(strSize, out height);
+            heightChangeRequested = true;
         }
         
         

@@ -9,7 +9,9 @@ namespace TownSuite.Web.ImageGen;
 public class ImageProxyRequestMetaData : RequestMetaData
 {
     public string ImageSrcUrl { get; private set; }
-    
+
+    public bool WidthChangeRequested => base.widthChangeRequested;
+    public bool HeightChangeRequested => base.heightChangeRequested;
 
     public virtual RequestMetaData GetRequestMetaData(IConfiguration config, HttpContext ctx, string folder)
     {

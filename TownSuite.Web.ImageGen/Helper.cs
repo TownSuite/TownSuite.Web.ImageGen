@@ -12,17 +12,19 @@ public static class Helper
         string contentType;
         string extension;
         using var ms = new MemoryStream();
-        if (string.Equals(image_format, "png", StringComparison.InvariantCultureIgnoreCase))
-        {
-            await image.SaveAsync(ms, new PngEncoder());
-            extension = "png";
-            contentType = "image/png";
-        }
-        else
+
+        if (string.Equals(image_format, "jpg", StringComparison.InvariantCultureIgnoreCase)
+            || string.Equals(image_format, "jpeg", StringComparison.InvariantCultureIgnoreCase))
         {
             await image.SaveAsync(ms, new JpegEncoder());
             extension = "jpeg";
             contentType = "image/jpeg";
+        }
+        else
+        {
+            await image.SaveAsync(ms, new PngEncoder());
+            extension = "png";
+            contentType = "image/png";
         }
 
         return (ms.ToArray(), extension, contentType);
