@@ -1,6 +1,8 @@
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Formats.Webp;
 
 namespace TownSuite.Web.ImageGen;
 
@@ -20,13 +22,25 @@ public static class Helper
             extension = "jpeg";
             contentType = "image/jpeg";
         }
+        else if (string.Equals(image_format, "webp", StringComparison.InvariantCultureIgnoreCase))
+        {
+            await image.SaveAsync(ms, new WebpEncoder());
+            extension = "webp";
+            contentType = "image/webp";
+        }
+        else if (string.Equals(image_format, "gif", StringComparison.InvariantCultureIgnoreCase))
+        {
+            await image.SaveAsync(ms, new GifEncoder());
+            extension = "gif";
+            contentType = "image/gif";
+        }
         else
         {
             await image.SaveAsync(ms, new PngEncoder());
             extension = "png";
             contentType = "image/png";
         }
-
+        
         return (ms.ToArray(), extension, contentType);
     }
 }

@@ -14,6 +14,8 @@ The configuration can be modified by editing appsettings.json or overriding the 
 Supported image formats are:
 1. png
 2. jpg
+3. gif
+4. webp
 
 The default image format is png.
 
