@@ -1,3 +1,6 @@
+using System.Net.Mime;
+using SixLabors.ImageSharp;
+
 namespace TownSuite.Web.ImageGen;
 
 public class ImageCacheProvider : IImageCacheProvider
@@ -11,9 +14,11 @@ public class ImageCacheProvider : IImageCacheProvider
             using var ms = new MemoryStream();
             await stream.CopyToAsync(ms);
             var image = ms.ToArray();
-            
+
+            ms.Seek(0, SeekOrigin.Begin);
+            var format= await Image.DetectFormatAsync(ms);
             return (image, new ImageMetaData(file.LastWriteTimeUtc, TimeSpan.FromDays(300),
-                image.Length, file.Name));
+                image.Length, file.Name, format.DefaultMimeType));
         }
 
         return (null, null);

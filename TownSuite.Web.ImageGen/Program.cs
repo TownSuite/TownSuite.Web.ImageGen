@@ -1,11 +1,13 @@
 using System.Net;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.Extensions.Primitives;
 using TownSuite.Web.ImageGen;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
+builder.Services.AddHttpClient();
 var app = builder.Build();
 
 
@@ -30,78 +32,41 @@ else
 
 app.MapGet("/avatar/{name}", async (ctx) =>
 {
-    var inst = new ImageProvider(new GenerateIdenticonImageRepo(), builder.Configuration,
+    var inst = new ImageProvider(new GenerateIdenticonImageRepo(),
         new ImageCacheProvider());
-    var rMetaData = GetRequestMetaData(ctx, "avatar");
+    var rMetaData = new RequestMetaData().GetRequestMetaData(builder.Configuration, ctx, "avatar");
     var result = await inst.GetAsync(rMetaData);
     await WriteOutput(ctx, result);
 });
 app.MapGet("/placeholder/{name}", async (ctx) =>
 {
-    var inst = new ImageProvider(new GeneratePlaceholderImageRepo(), builder.Configuration,
+    var inst = new ImageProvider(new GeneratePlaceholderImageRepo(),
         new ImageCacheProvider());
-    var rMetaData = GetRequestMetaData(ctx, "placeholder");
+    
+    var rMetaData = new RequestMetaData().GetRequestMetaData(builder.Configuration, ctx, "placeholder");
     var result = await inst.GetAsync(rMetaData);
     await WriteOutput(ctx, result);
 });
+app.MapGet("/proxy/{name}", async (HttpContext ctx, IHttpClientFactory clientFactory) =>
+{
+    var inst = new ImageProvider(new ImageProxyRepo(clientFactory),
+        new ImageCacheProvider());
+    var rMetaData = new ImageProxyRequestMetaData().GetRequestMetaData(builder.Configuration ,ctx, "imageproxy");
+    var result = await inst.GetAsync(rMetaData);
+    await WriteOutput(ctx, result);
+});
+
 
 
 app.UseStaticFiles();
 app.MapHealthChecks("/healthz");
 app.Run();
 
-RequestMetaData GetRequestMetaData(HttpContext ctx, string folder)
-{
-    string id = Hash(ctx.Request.Path.Value.Split("/").LastOrDefault());
-    string cacheFolder = builder.Configuration.GetValue<string>("CacheFolder");
 
-    int width = 80;
-    int height = 80;
-    int maxWidth = builder.Configuration.GetValue<int>("MaxWidth");
-    int maxHeight = builder.Configuration.GetValue<int>("MaxHeight");
-    // identicons
-    ctx.Request.Query.TryGetValue("s", out var strSize);
-    int.TryParse(strSize, out var size);
-
-    // placeholders
-    if (ctx.Request.Query.ContainsKey("w"))
-    {
-        ctx.Request.Query.TryGetValue("w", out strSize);
-        int.TryParse(strSize, out width);
-    }
-
-    if (ctx.Request.Query.ContainsKey("h"))
-    {
-        ctx.Request.Query.TryGetValue("h", out strSize);
-        int.TryParse(strSize, out height);
-    }
-
-    string path;
-    if (size == 0)
-    {
-        if (height > maxHeight || width > maxWidth)
-        {
-            throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
-        }
-
-        path = Path.Combine(cacheFolder, folder, $"{id}_{width}_{height}.png");
-        return new RequestMetaData(height, width, path,
-            id);
-    }
-
-    if (size > maxHeight || size > maxWidth)
-    {
-        throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
-    }
-
-    path = Path.Combine(cacheFolder, folder, $"{id}_{size}_{size}.png");
-    return new RequestMetaData(size, size, path,
-        id);
-}
 
 async Task WriteOutput(HttpContext ctx, (byte[] image, ImageMetaData metadata) result)
 {
-    ctx.Response.Headers.Add("Content-Type", "image/png");
+    ctx.Response.Headers.Add("Content-Type", result.metadata.ContentType);
     ctx.Response.Headers.Add("Expires", result.metadata.Expires.ToString());
     ctx.Response.Headers.Add("Cache-Control", "max-age=300");
     ctx.Response.Headers.Add("Content-Length", result.metadata.ContentLength.ToString());
@@ -110,10 +75,3 @@ async Task WriteOutput(HttpContext ctx, (byte[] image, ImageMetaData metadata) r
     await ctx.Response.Body.WriteAsync(result.image);
 }
 
-static string Hash(string nonHashedString)
-{
-    using var md5 = MD5.Create();
-    byte[] data = System.Text.Encoding.UTF8.GetBytes(nonHashedString);
-    byte[] retVal = md5.ComputeHash(data);
-    return BitConverter.ToString(retVal);
-}

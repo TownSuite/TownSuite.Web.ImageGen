@@ -14,30 +14,30 @@ public class GeneratePlaceholderImageRepo : IImageRepository
 {
     public string Folder { get; } = "placeholders";
 
-    public async Task<(byte[] imageData, ImageMetaData metadata)> Get(string id,
-        int width, int height)
-    {    
+    public async Task<(byte[] imageData, ImageMetaData metadata)> Get(RequestMetaData request)
+    {
         var font = GetFont("Hack", 25);
-        var img2 = await DrawText(id, font, Color.Aqua, Random.Shared, width, height);
-        var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromDays(360), img2.Length, $"{id}.png");
-        return (img2, md);
+        var img2 = await DrawText(request.Id, font, Color.Aqua, Random.Shared, request);
+        var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromDays(360), img2.image.Length,
+            $"{request.Id}.{img2.fileExt}",
+            img2.contentType);
+        return (img2.image, md);
     }
 
-    static async Task<byte[]> DrawText(string text,
+    static async Task<(byte[] image, string fileExt, string contentType)> DrawText(string text,
         SixLabors.Fonts.Font font,
         SixLabors.ImageSharp.Color textColor,
-        Random randonGen, int imageWidth,
-        int imageHeight)
+        Random randonGen, RequestMetaData request)
     {
-        using Image image = new Image<Rgba32>(imageWidth, imageHeight);
+        using Image image = new Image<Rgba32>(request.Width, request.Height);
         Color randomColor = Color.FromRgb(Convert.ToByte(randonGen.Next(255)), Convert.ToByte(randonGen.Next(255)),
             Convert.ToByte(randonGen.Next(255)));
         image.Mutate(x => x.Clear(randomColor));
-        var location = new PointF(0, (int)(imageHeight / 2.5));
+        var location = new PointF(0, (int)(request.Height / 2.5));
         image.Mutate(x => x.DrawText(text, font,
             textColor, location));
 
-        return await BinaryAsBytes(image);
+        return await Helper.BinaryAsBytes(image, request.ImageFormat);
     }
 
     static FontCollection collection = null;
@@ -69,12 +69,5 @@ public class GeneratePlaceholderImageRepo : IImageRepository
         }
 
         return new Font(family, size);
-    }
-
-    static async Task<byte[]> BinaryAsBytes(Image image)
-    {
-        using var ms = new MemoryStream();
-        await image.SaveAsync(ms, new PngEncoder());
-        return ms.ToArray();
     }
 }

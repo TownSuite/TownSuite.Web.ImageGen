@@ -13,14 +13,29 @@ namespace TownSuite.Web.ImageGen;
 public class GenerateIdenticonImageRepo : IImageRepository
 {
     public string Folder { get; } = "avatars";
-    public async Task<(byte[] imageData, ImageMetaData metadata)> Get(string id, int width, int height)
+
+    public async Task<(byte[] imageData, ImageMetaData metadata)> Get(RequestMetaData request)
     {
         using var ms = new MemoryStream();
+
         await Jdenticon.Identicon
-            .FromValue(id, size: width)
+            .FromValue(request.Id, size: request.Width)
             .SaveAsPngAsync(ms);
-        
-        var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromDays(360), ms.Length, $"{id}.png");
+
+        if (string.Equals(request.ImageFormat, "jpg", StringComparison.InvariantCultureIgnoreCase))
+        {
+            var img = await Image.LoadAsync(ms);
+            var result = await Helper.BinaryAsBytes(img, request.ImageFormat);
+            var imd = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromDays(360), result.image.Length,
+                $"{request.Id}.{request.ImageFormat}",
+                result.contentType);
+            return (result.image, imd);
+        }
+
+
+        var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromDays(360), ms.Length,
+            $"{request.Id}.{request.ImageFormat}",
+            "image/png");
         return (ms.ToArray(), md);
     }
 }

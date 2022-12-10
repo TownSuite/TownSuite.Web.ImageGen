@@ -1,19 +1,98 @@
 using System.Reflection.Metadata;
+using System.Security.Cryptography;
+using Microsoft.Extensions.Primitives;
 
 namespace TownSuite.Web.ImageGen;
 
 public class RequestMetaData
 {
-    public RequestMetaData(int height, int width, string path, string id)
-    {
-        Height = height;
-        Width = width;
-        Path = path;
-        Id = id;
-    }
+    public int Height { get; private set; }
+    public int Width { get; private set; }
+    public string Path { get; private set; }
+    public string Id { get; private set; }
+    public string ImageFormat { get; private set; }
+    
+    public string [] PathParts { get; private set; }
 
-    public int Height { get; init; }
-    public int Width { get; init; }
-    public string Path { get; init; }
-    public string Id { get; init; }
+    public virtual RequestMetaData GetRequestMetaData(IConfiguration config, HttpContext ctx, string folder)
+    {
+        PathParts = ctx.Request.Path.Value.Split("/");
+        string id = Hash($"{PathParts.LastOrDefault()}{ctx.Request.QueryString.ToString()}");
+        string cacheFolder = config.GetValue<string>("CacheFolder");
+        StringValues image_format = string.Empty;
+        
+        int width = 80;
+        int height = 80;
+        int maxWidth = config.GetValue<int>("MaxWidth");
+        int maxHeight = config.GetValue<int>("MaxHeight");
+        // identicons
+        ctx.Request.Query.TryGetValue("s", out var strSize);
+        int.TryParse(strSize, out var size);
+
+        // placeholders
+        if (ctx.Request.Query.ContainsKey("w"))
+        {
+            ctx.Request.Query.TryGetValue("w", out strSize);
+            int.TryParse(strSize, out width);
+        }
+
+        if (ctx.Request.Query.ContainsKey("h"))
+        {
+            ctx.Request.Query.TryGetValue("h", out strSize);
+            int.TryParse(strSize, out height);
+        }
+        
+        
+        if (ctx.Request.Query.ContainsKey("imgformat"))
+        {
+            ctx.Request.Query.TryGetValue("imgformat", out image_format);
+        }
+        else
+        {
+            image_format = "png";
+        }
+        
+        string path;
+        if (size == 0)
+        {
+            if (height > maxHeight || width > maxWidth)
+            {
+                throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
+            }
+
+            path = System.IO.Path.Combine(cacheFolder, folder, $"{id}_{width}_{height}.{image_format}");
+
+            this.Height = height;
+            this.Width = width;
+            this.Path = path;
+            this.Id = id;
+            this.ImageFormat = image_format;
+
+            return this;
+        }
+
+        if (size > maxHeight || size > maxWidth)
+        {
+            throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
+        }
+
+        path = System.IO.Path.Combine(cacheFolder, folder, $"{id}_{size}_{size}.{image_format}");
+
+        this.Height = size;
+        this.Width = size;
+        this.Path = path;
+        this.Id = id;
+        this.ImageFormat = image_format;
+
+        
+        return this;
+    }
+    
+    static string Hash(string nonHashedString)
+    {
+        using var md5 = MD5.Create();
+        byte[] data = System.Text.Encoding.UTF8.GetBytes(nonHashedString);
+        byte[] retVal = md5.ComputeHash(data);
+        return BitConverter.ToString(retVal);
+    }
 }
