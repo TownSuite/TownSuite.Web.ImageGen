@@ -7,7 +7,7 @@ using SixLabors.ImageSharp;
 namespace TownSuite.Web.ImageGen.Tests;
 
 [TestFixture]
-public class ImageProxyRepoTest
+public class GenerateIdenticonImageRepoTest
 {
     [SetUp]
     public void Setup()
@@ -22,9 +22,9 @@ public class ImageProxyRepoTest
         Assert.That(origImage.Width, Is.EqualTo(800));
         
         var downloader = new DownloaderFake();
-        var repo = new ImageProxyRepo(downloader);
-        var request = new ImageProxyRequestMetaData();
-        var query = CreateContext(888, 888, "jpg");
+        var repo = new GenerateIdenticonImageRepo();
+        var request = new RequestMetaData();
+        var query = CreateContext(777, 777, "webp");
         
         request.GetRequestMetaData(new Settings()
             {
@@ -34,15 +34,15 @@ public class ImageProxyRepoTest
             },
             query.query,
             query.rawQuery,
-            "/proxy/assets%2Ffacility.jpg",
+            "/avatar/hello",
             "test_output");
         var results = await repo.Get(request);
 
         using var ms = new MemoryStream(results.imageData);
         var newImage = await Image.LoadAsync(ms);
-        Assert.That(results.metadata.ContentType, Is.EqualTo("image/jpeg"));
-        Assert.That(newImage.Height, Is.EqualTo(888));
-        Assert.That(newImage.Width, Is.EqualTo(888));
+        Assert.That(results.metadata.ContentType, Is.EqualTo("image/webp"));
+        Assert.That(newImage.Height, Is.EqualTo(777));
+        Assert.That(newImage.Width, Is.EqualTo(777));
     }
 
     private (QueryCollection query, string rawQuery) CreateContext(int h, int w,string imgformat)
