@@ -13,10 +13,11 @@ public class ImageProxyRequestMetaData : RequestMetaData
     public bool WidthChangeRequested => base.widthChangeRequested;
     public bool HeightChangeRequested => base.heightChangeRequested;
 
-    public virtual RequestMetaData GetRequestMetaData(IConfiguration config, HttpContext ctx, string folder)
+    public virtual RequestMetaData GetRequestMetaData(Settings config, IQueryCollection query, string rawQueryString,
+        string uriPath,
+        string cacheSubFolder)
     {
-        base.GetRequestMetaData(config, ctx, folder);
-        StringValues proxy_src_image = string.Empty;
+        base.GetRequestMetaData(config, query, rawQueryString, uriPath, cacheSubFolder);
         ImageSrcUrl = HttpUtility.UrlDecode(PathParts.LastOrDefault());
 
         return this;

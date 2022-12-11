@@ -11,21 +11,17 @@ namespace TownSuite.Web.ImageGen;
 public class ImageProxyRepo : IImageRepository
 {
     public string Folder { get; } = "imageproxy";
-    private readonly IHttpClientFactory _clientFactory;
+    private readonly IImageDownloader _downloader;
 
-    public ImageProxyRepo(IHttpClientFactory clientFactory)
+    public ImageProxyRepo(IImageDownloader downloader)
     {
-        _clientFactory = clientFactory;
+        _downloader = downloader;
     }
 
     public async Task<(byte[] imageData, ImageMetaData metadata)> Get(RequestMetaData request)
     {
         var proxyRequest = request as ImageProxyRequestMetaData;
-
-        using HttpClient client = new HttpClient();
-        using var response = await client.GetAsync(proxyRequest.ImageSrcUrl);
-        response.EnsureSuccessStatusCode();
-        var img = await Image.LoadAsync(await response.Content.ReadAsStreamAsync());
+        var img = await _downloader.Download(proxyRequest.ImageSrcUrl);
 
         if (proxyRequest.WidthChangeRequested && proxyRequest.HeightChangeRequested)
         {

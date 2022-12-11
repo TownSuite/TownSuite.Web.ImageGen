@@ -13,49 +13,51 @@ public class RequestMetaData
     public string Path { get; private set; }
     public string Id { get; private set; }
     public string ImageFormat { get; private set; }
-    
-    public string [] PathParts { get; private set; }
 
-    public virtual RequestMetaData GetRequestMetaData(IConfiguration config, HttpContext ctx, string folder)
+    public string[] PathParts { get; private set; }
+
+    public virtual RequestMetaData GetRequestMetaData(Settings config, IQueryCollection query, string rawQueryString,
+        string uriPath,
+        string cacheSubFolder)
     {
-        PathParts = ctx.Request.Path.Value.Split("/");
-        string id = Hash($"{PathParts.LastOrDefault()}{ctx.Request.QueryString.ToString()}");
-        string cacheFolder = config.GetValue<string>("CacheFolder");
+        PathParts = uriPath.Split("/");
+        string id = Hash($"{PathParts.LastOrDefault()}{rawQueryString}");
+        string cacheFolder = config.CacheFolder;
         StringValues image_format = string.Empty;
-        
+
         int width = 80;
         int height = 80;
-        int maxWidth = config.GetValue<int>("MaxWidth");
-        int maxHeight = config.GetValue<int>("MaxHeight");
+        int maxWidth = config.MaxWidth;
+        int maxHeight = config.MaxHeight;
         // identicons
-        ctx.Request.Query.TryGetValue("s", out var strSize);
+        query.TryGetValue("s", out var strSize);
         int.TryParse(strSize, out var size);
-        
-        if (ctx.Request.Query.ContainsKey("w"))
+
+        if (query.ContainsKey("w"))
         {
-            ctx.Request.Query.TryGetValue("w", out strSize);
-            
+            query.TryGetValue("w", out strSize);
+
             int.TryParse(strSize, out width);
             widthChangeRequested = true;
         }
 
-        if (ctx.Request.Query.ContainsKey("h"))
+        if (query.ContainsKey("h"))
         {
-            ctx.Request.Query.TryGetValue("h", out strSize);
+            query.TryGetValue("h", out strSize);
             int.TryParse(strSize, out height);
             heightChangeRequested = true;
         }
-        
-        
-        if (ctx.Request.Query.ContainsKey("imgformat"))
+
+
+        if (query.ContainsKey("imgformat"))
         {
-            ctx.Request.Query.TryGetValue("imgformat", out image_format);
+            query.TryGetValue("imgformat", out image_format);
         }
         else
         {
             image_format = "png";
         }
-        
+
         string path;
         if (size == 0)
         {
@@ -64,7 +66,7 @@ public class RequestMetaData
                 throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
             }
 
-            path = System.IO.Path.Combine(cacheFolder, folder, $"{id}_{width}_{height}.{image_format}");
+            path = System.IO.Path.Combine(cacheFolder, cacheSubFolder, $"{id}_{width}_{height}.{image_format}");
 
             this.Height = height;
             this.Width = width;
@@ -80,7 +82,7 @@ public class RequestMetaData
             throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
         }
 
-        path = System.IO.Path.Combine(cacheFolder, folder, $"{id}_{size}_{size}.{image_format}");
+        path = System.IO.Path.Combine(cacheFolder, cacheSubFolder, $"{id}_{size}_{size}.{image_format}");
 
         this.Height = size;
         this.Width = size;
@@ -88,10 +90,10 @@ public class RequestMetaData
         this.Id = id;
         this.ImageFormat = image_format;
 
-        
+
         return this;
     }
-    
+
     static string Hash(string nonHashedString)
     {
         using var md5 = MD5.Create();
