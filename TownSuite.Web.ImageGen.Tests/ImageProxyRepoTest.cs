@@ -14,8 +14,10 @@ public class ImageProxyRepoTest
     {
     }
 
-    [Test]
-    public async Task Test1()
+    private static string[] ImageFormatCases = new string[] { "jpeg", "png", "gif", "webp" };
+    
+    [Test, TestCaseSource("ImageFormatCases")]
+    public async Task Test1(string imageformat)
     {
         var origImage = await Image.LoadAsync("assets/facility.jpg");
         Assert.That(origImage.Height, Is.EqualTo(365));
@@ -24,7 +26,7 @@ public class ImageProxyRepoTest
         var downloader = new DownloaderFake();
         var repo = new ImageProxyRepo(downloader);
         var request = new ImageProxyRequestMetaData();
-        var query = CreateContext(888, 888, "jpg");
+        var query = CreateContext(888, 888, imageformat);
         
         request.GetRequestMetaData(new Settings()
             {
@@ -40,7 +42,7 @@ public class ImageProxyRepoTest
 
         using var ms = new MemoryStream(results.imageData);
         var newImage = await Image.LoadAsync(ms);
-        Assert.That(results.metadata.ContentType, Is.EqualTo("image/jpeg"));
+        Assert.That(results.metadata.ContentType, Is.EqualTo($"image/{imageformat}"));
         Assert.That(newImage.Height, Is.EqualTo(888));
         Assert.That(newImage.Width, Is.EqualTo(888));
     }

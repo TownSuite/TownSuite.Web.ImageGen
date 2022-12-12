@@ -22,21 +22,12 @@ public class GenerateIdenticonImageRepo : IImageRepository
             .FromValue(request.Id, size: request.Width)
             .SaveAsPngAsync(ms);
 
-        if (string.Equals(request.ImageFormat, "jpg", StringComparison.InvariantCultureIgnoreCase)
-            || string.Equals(request.ImageFormat, "jpeg", StringComparison.InvariantCultureIgnoreCase))
-        {
-            ms.Seek(0, SeekOrigin.Begin);
-            var img = await Image.LoadAsync(ms);
-            var result = await Helper.BinaryAsBytes(img, request.ImageFormat);
-            var imd = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromDays(360), result.image.Length,
-                $"{request.Id}.{request.ImageFormat}",
-                result.contentType);
-            return (result.image, imd);
-        }
-        
-        var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromDays(360), ms.Length,
+        ms.Seek(0, SeekOrigin.Begin);
+        var img = await Image.LoadAsync(ms);
+        var result = await Helper.BinaryAsBytes(img, request.ImageFormat);
+        var imd = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromDays(360), result.image.Length,
             $"{request.Id}.{request.ImageFormat}",
-            "image/png");
-        return (ms.ToArray(), md);
+            result.contentType);
+        return (result.image, imd);
     }
 }

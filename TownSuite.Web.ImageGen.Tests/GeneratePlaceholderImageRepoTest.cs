@@ -7,7 +7,7 @@ using SixLabors.ImageSharp;
 namespace TownSuite.Web.ImageGen.Tests;
 
 [TestFixture]
-public class GenerateIdenticonImageRepoTest
+public class GeneratePlaceHolderImageRepoTest
 {
     [SetUp]
     public void Setup()
@@ -24,9 +24,9 @@ public class GenerateIdenticonImageRepoTest
         Assert.That(origImage.Width, Is.EqualTo(800));
         
         var downloader = new DownloaderFake();
-        var repo = new GenerateIdenticonImageRepo();
+        var repo = new GeneratePlaceholderImageRepo();
         var request = new RequestMetaData();
-        var query = CreateContext(777, 777, imageformat);
+        var query = CreateContext(555, 555, imageformat);
         
         request.GetRequestMetaData(new Settings()
             {
@@ -36,15 +36,15 @@ public class GenerateIdenticonImageRepoTest
             },
             query.query,
             query.rawQuery,
-            "/avatar/hello",
+            "/placeholder/hello",
             "test_output");
         var results = await repo.Get(request);
 
         using var ms = new MemoryStream(results.imageData);
         var newImage = await Image.LoadAsync(ms);
         Assert.That(results.metadata.ContentType, Is.EqualTo($"image/{imageformat}"));
-        Assert.That(newImage.Height, Is.EqualTo(777));
-        Assert.That(newImage.Width, Is.EqualTo(777));
+        Assert.That(newImage.Height, Is.EqualTo(555));
+        Assert.That(newImage.Width, Is.EqualTo(555));
     }
 
     private (QueryCollection query, string rawQuery) CreateContext(int h, int w,string imgformat)
