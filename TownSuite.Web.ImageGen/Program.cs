@@ -13,7 +13,8 @@ builder.Services.AddScoped<Settings>(s => new Settings()
 {
     CacheFolder = builder.Configuration.GetValue<string>("CacheFolder"),
     MaxHeight = builder.Configuration.GetValue<int>("MaxHeight"),
-    MaxWidth = builder.Configuration.GetValue<int>("MaxWidth")
+    MaxWidth = builder.Configuration.GetValue<int>("MaxWidth"),
+    UserAgent = builder.Configuration.GetValue<string>("UserAgent")
 });
 var app = builder.Build();
 
