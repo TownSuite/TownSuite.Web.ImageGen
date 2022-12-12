@@ -23,7 +23,8 @@ public class ImageProxyRepo : IImageRepository
         var proxyRequest = request as ImageProxyRequestMetaData;
         var img = await _downloader.Download(proxyRequest.ImageSrcUrl);
 
-        if (proxyRequest.WidthChangeRequested && proxyRequest.HeightChangeRequested)
+        if (proxyRequest.WidthChangeRequested && proxyRequest.HeightChangeRequested
+            && ResizeRequestIsSmallerOrEqualToOrignalSize(proxyRequest, img))
         {
             img.Mutate(x => x
                 .Resize(proxyRequest.Width, proxyRequest.Height));
@@ -31,12 +32,12 @@ public class ImageProxyRepo : IImageRepository
         // If you pass 0 as any of the values for width and height dimensions then 
         // ImageSharp will automatically determine the correct opposite dimensions 
         // size to preserve the original aspect ratio.
-        else if (proxyRequest.WidthChangeRequested)
+        else if (proxyRequest.WidthChangeRequested && ResizeRequestIsSmallerOrEqualToOrignalSize(proxyRequest, img))
         {
             img.Mutate(x => x
                 .Resize(proxyRequest.Width, 0));
         }
-        else if (proxyRequest.HeightChangeRequested)
+        else if (proxyRequest.HeightChangeRequested && ResizeRequestIsSmallerOrEqualToOrignalSize(proxyRequest, img))
         {
             img.Mutate(x => x
                 .Resize(0, proxyRequest.Height));
@@ -49,5 +50,14 @@ public class ImageProxyRepo : IImageRepository
         return (img2.image, md);
     }
 
+    /// <summary>
+    /// If an resize request is larger than the original image size we will just return the original size.
+    /// Do not make the image larger as it will become blurry and distorted.
+    /// </summary>
+    /// <returns></returns>
+    private bool ResizeRequestIsSmallerOrEqualToOrignalSize(ImageProxyRequestMetaData proxyRequest, Image img)
+    {
+        return proxyRequest.Height <= img.Height && proxyRequest.Width <= img.Width;
+    }
     
 }
