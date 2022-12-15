@@ -9,13 +9,19 @@ builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IImageDownloader, ImageDownloader>();
-builder.Services.AddScoped<Settings>(s => new Settings()
+builder.Services.AddSingleton<Settings>(s => new Settings()
 {
     CacheFolder = builder.Configuration.GetValue<string>("CacheFolder"),
     MaxHeight = builder.Configuration.GetValue<int>("MaxHeight"),
+    CacheBackgroundCleanupTimerSeconds = builder.Configuration.GetValue<int>("CacheBackgroundCleanupTimerSeconds"),
+    CacheMaxLifeTimeMinutes = builder.Configuration.GetValue<int>("CacheMaxLifeTimeMinutes"),
+    CacheSizeLimitInMiB = builder.Configuration.GetValue<int>("CacheSizeLimitInMiB"),
     MaxWidth = builder.Configuration.GetValue<int>("MaxWidth"),
     UserAgent = builder.Configuration.GetValue<string>("UserAgent")
 });
+
+builder.Services.AddHostedService<BackgroundWorkerService>();
+
 var app = builder.Build();
 
 if (builder.Environment.IsDevelopment())

@@ -19,6 +19,25 @@ Supported image formats are:
 
 The default image format is png.
 
+
+# Appsettings.json
+
+1. "CacheFolder": "wwwroot/cache",
+    * The base folder to store cached images.
+2. "CacheBackgroundCleanupTimerSeconds": 300,
+    * How many seconds are between background cleanup runs.
+3. "CacheMaxLifeTimeMinutes": 1440,
+    * Is only enforced once the cache size limit is reached
+4. "CacheSizeLimitInMiB": 10000,
+    * The cache size that the background cleanup starts to be enforced.
+5. "MaxWidth": 2000,
+    * The max width that can be requested for an image resize.
+6. "MaxHeight": 2000,
+    * The max height that can be requested for an image resize.
+7. "UserAgent": "TownSuiteImageGen/1.0 Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0"
+    * The user agent that will be used in the image proxy.
+
+
 # Identicon example
 
 A default request with size 80.   This generates a png.
