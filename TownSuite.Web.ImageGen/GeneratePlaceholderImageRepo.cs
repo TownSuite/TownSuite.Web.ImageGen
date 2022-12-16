@@ -14,11 +14,18 @@ public class GeneratePlaceholderImageRepo : IImageRepository
 {
     public string Folder { get; } = "placeholders";
 
+    private readonly Settings _settings;
+
+    public GeneratePlaceholderImageRepo(Settings settings)
+    {
+        _settings = settings;
+    }
+    
     public async Task<(byte[] imageData, ImageMetaData metadata)> Get(RequestMetaData request)
     {
         var font = GetFont("Hack", 25);
         var img2 = await DrawText(request.Id, font, Color.Aqua, Random.Shared, request);
-        var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromDays(360), img2.image.Length,
+        var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromMinutes(_settings.HttpCacheControlMaxAgeInMinutes), img2.image.Length,
             $"{request.Id}.{img2.fileExt}",
             img2.contentType);
         return (img2.image, md);

@@ -16,6 +16,7 @@ builder.Services.AddSingleton<Settings>(s => new Settings()
     CacheBackgroundCleanupTimerSeconds = builder.Configuration.GetValue<int>("CacheBackgroundCleanupTimerSeconds"),
     CacheMaxLifeTimeMinutes = builder.Configuration.GetValue<int>("CacheMaxLifeTimeMinutes"),
     CacheSizeLimitInMiB = builder.Configuration.GetValue<int>("CacheSizeLimitInMiB"),
+    HttpCacheControlMaxAgeInMinutes = builder.Configuration.GetValue<int>("HttpCacheControlMaxAgeInMinutes"),
     MaxWidth = builder.Configuration.GetValue<int>("MaxWidth"),
     UserAgent = builder.Configuration.GetValue<string>("UserAgent")
 });
@@ -45,8 +46,8 @@ else
 
 app.MapGet("/avatar/{name}", async (HttpContext ctx, Settings config) =>
 {
-    var inst = new ImageProvider(new GenerateIdenticonImageRepo(),
-        new ImageCacheProvider());
+    var inst = new ImageProvider(new GenerateIdenticonImageRepo(config),
+        new ImageCacheProvider(config));
     var rMetaData =
         new RequestMetaData().GetRequestMetaData(config, ctx.Request.Query, ctx.Request.QueryString.Value,
             ctx.Request.Path.Value, "avatar");
@@ -55,8 +56,8 @@ app.MapGet("/avatar/{name}", async (HttpContext ctx, Settings config) =>
 });
 app.MapGet("/placeholder/{name}", async (HttpContext ctx, Settings config) =>
 {
-    var inst = new ImageProvider(new GeneratePlaceholderImageRepo(),
-        new ImageCacheProvider());
+    var inst = new ImageProvider(new GeneratePlaceholderImageRepo(config),
+        new ImageCacheProvider(config));
 
     var rMetaData =
         new RequestMetaData().GetRequestMetaData(config, ctx.Request.Query, ctx.Request.QueryString.Value,
@@ -66,8 +67,8 @@ app.MapGet("/placeholder/{name}", async (HttpContext ctx, Settings config) =>
 });
 app.MapGet("/proxy/{name}", async (HttpContext ctx, IImageDownloader downloader, Settings config) =>
 {
-    var inst = new ImageProvider(new ImageProxyRepo(downloader),
-        new ImageCacheProvider());
+    var inst = new ImageProvider(new ImageProxyRepo(downloader, config),
+        new ImageCacheProvider(config));
     var rMetaData =
         new ImageProxyRequestMetaData().GetRequestMetaData(config, ctx.Request.Query, ctx.Request.QueryString.Value,
             ctx.Request.Path.Value,
@@ -83,8 +84,8 @@ app.Run();
 async Task WriteOutput(HttpContext ctx, (byte[] image, ImageMetaData metadata) result)
 {
     ctx.Response.Headers.Add("Content-Type", result.metadata.ContentType);
-    ctx.Response.Headers.Add("Expires", result.metadata.Expires.ToString());
-    ctx.Response.Headers.Add("Cache-Control", "max-age=300");
+    ctx.Response.Headers.Add("Expires",  DateTime.UtcNow.Add(result.metadata.Expires).ToString("R"));
+    ctx.Response.Headers.Add("Cache-Control", $"max-age={result.metadata.Expires.TotalSeconds}");
     ctx.Response.Headers.Add("Content-Length", result.metadata.ContentLength.ToString());
     ctx.Response.Headers.Add("Last-Modified", result.metadata.LastModifiedUtc.ToUniversalTime().ToString("R"));
     ctx.Response.Headers.Add("Content-Disposition", $"inline; filename=\"{result.metadata.Filename}\"");

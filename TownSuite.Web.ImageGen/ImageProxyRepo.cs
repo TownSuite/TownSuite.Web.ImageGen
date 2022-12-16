@@ -12,10 +12,12 @@ public class ImageProxyRepo : IImageRepository
 {
     public string Folder { get; } = "imageproxy";
     private readonly IImageDownloader _downloader;
+    private readonly Settings _settings;
 
-    public ImageProxyRepo(IImageDownloader downloader)
+    public ImageProxyRepo(IImageDownloader downloader, Settings settings)
     {
         _downloader = downloader;
+        _settings = settings;
     }
 
     public async Task<(byte[] imageData, ImageMetaData metadata)> Get(RequestMetaData request)
@@ -44,7 +46,7 @@ public class ImageProxyRepo : IImageRepository
         }
         
         var img2 = await Helper.BinaryAsBytes(img, proxyRequest.ImageFormat);
-        var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromDays(360), img2.image.Length,
+        var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromMinutes(_settings.HttpCacheControlMaxAgeInMinutes), img2.image.Length,
             $"{request.Id}.{img2.fileExt}",
             img2.contentType);
         return (img2.image, md);

@@ -24,7 +24,10 @@ public class GeneratePlaceHolderImageRepoTest
         Assert.That(origImage.Width, Is.EqualTo(800));
         
         var downloader = new DownloaderFake();
-        var repo = new GeneratePlaceholderImageRepo();
+        var repo = new GeneratePlaceholderImageRepo(new Settings()
+        {
+            HttpCacheControlMaxAgeInMinutes = 5
+        });
         var request = new RequestMetaData();
         var query = CreateContext(555, 555, imageformat);
         

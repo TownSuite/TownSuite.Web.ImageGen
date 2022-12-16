@@ -5,6 +5,14 @@ namespace TownSuite.Web.ImageGen;
 
 public class ImageCacheProvider : IImageCacheProvider
 {
+    
+    private readonly Settings _settings;
+
+    public ImageCacheProvider(Settings settings)
+    {
+        _settings = settings;
+    }
+    
     public async Task<(byte[] image, ImageMetaData metadata)> GetAsync(RequestMetaData rMetaData)
     {
         var file = new System.IO.FileInfo(rMetaData.Path);
@@ -17,7 +25,7 @@ public class ImageCacheProvider : IImageCacheProvider
 
             ms.Seek(0, SeekOrigin.Begin);
             var format= await Image.DetectFormatAsync(ms);
-            return (image, new ImageMetaData(file.LastWriteTimeUtc, TimeSpan.FromDays(300),
+            return (image, new ImageMetaData(file.LastWriteTimeUtc, TimeSpan.FromMinutes(_settings.HttpCacheControlMaxAgeInMinutes),
                 image.Length, file.Name, format.DefaultMimeType));
         }
 

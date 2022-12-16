@@ -24,7 +24,10 @@ public class GenerateIdenticonImageRepoTest
         Assert.That(origImage.Width, Is.EqualTo(800));
         
         var downloader = new DownloaderFake();
-        var repo = new GenerateIdenticonImageRepo();
+        var repo = new GenerateIdenticonImageRepo(new Settings()
+        {
+            HttpCacheControlMaxAgeInMinutes = 5
+        });
         var request = new RequestMetaData();
         var query = CreateContext(777, 777, imageformat);
         

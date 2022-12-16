@@ -24,7 +24,10 @@ public class ImageProxyRepoTest
         Assert.That(origImage.Width, Is.EqualTo(800));
         
         var downloader = new DownloaderFake();
-        var repo = new ImageProxyRepo(downloader);
+        var repo = new ImageProxyRepo(downloader, new Settings()
+        {
+            HttpCacheControlMaxAgeInMinutes = 5
+        });
         var request = new ImageProxyRequestMetaData();
         var query = CreateContext(333, 333, imageformat);
         
@@ -55,7 +58,10 @@ public class ImageProxyRepoTest
         Assert.That(origImage.Width, Is.EqualTo(800));
         
         var downloader = new DownloaderFake();
-        var repo = new ImageProxyRepo(downloader);
+        var repo = new ImageProxyRepo(downloader, new Settings()
+        {
+            HttpCacheControlMaxAgeInMinutes = 5
+        });
         var request = new ImageProxyRequestMetaData();
         var query = CreateContext(888, 888, imageformat);
         
