@@ -89,30 +89,6 @@ async Task WriteOutput(HttpContext ctx, ImageMetaData metadata)
     ctx.Response.Headers.Add("Content-Length", metadata.ContentLength.ToString());
     ctx.Response.Headers.Add("Last-Modified", metadata.LastModifiedUtc.ToUniversalTime().ToString("R"));
     ctx.Response.Headers.Add("Content-Disposition", $"inline; filename=\"{metadata.Filename}\"");
-    //await ctx.Response.Body.WriteAsync(result.image);
-
-    // *************************** attempt just streams
-    // inspiration https://ticehurst.com/2022/01/30/blob-streaming.html
-    // Support range requests if it specifies exactly one range with a from position specified
-
     await using var fs = new FileStream(metadata.FullFilePath, FileMode.Open);
     await fs.CopyToAsync(ctx.Response.Body);
-    
-  /*
-    var ranges = ctx.Request.GetTypedHeaders().Range?.Ranges;
-    if (ranges != null && ranges.Count == 1 && ranges.First().From.HasValue)
-    {
-        var range = ranges.First();
-        long? length = range.To.HasValue ? range.To.Value - range.From!.Value + 1 : null;
-        blobRange = new(range.From!.Value, length);
-    }
-    
-    using (var fs = new FileStream("valid-path-to-file-on-server.txt", FileMode.Open))
-    {
-        fs.
-        await fs.CopyToAsync(ctx.Response.Body);
-    }
-    
-    await ctx.Response.SendFileAsync(new FileInfo(), 0, 0);
-    */
 }
