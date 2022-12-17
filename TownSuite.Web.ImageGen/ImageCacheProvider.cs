@@ -13,23 +13,16 @@ public class ImageCacheProvider : IImageCacheProvider
         _settings = settings;
     }
     
-    public async Task<(byte[] image, ImageMetaData metadata)> GetAsync(RequestMetaData rMetaData)
+    public async Task<ImageMetaData?> GetAsync(RequestMetaData rMetaData)
     {
         var file = new System.IO.FileInfo(rMetaData.Path);
-        if (file.Exists)
-        {
-            await using var stream = file.OpenRead();
-            using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            var image = ms.ToArray();
-
-            ms.Seek(0, SeekOrigin.Begin);
-            var format= await Image.DetectFormatAsync(ms);
-            return (image, new ImageMetaData(file.LastWriteTimeUtc, TimeSpan.FromMinutes(_settings.HttpCacheControlMaxAgeInMinutes),
-                image.Length, file.Name, format.DefaultMimeType));
-        }
-
-        return (null, null);
+        if (!file.Exists) return null;
+        
+        await using var fs = file.OpenRead();
+        var format= await Image.DetectFormatAsync(fs);
+        fs.Seek(0, SeekOrigin.Begin);
+        return new ImageMetaData(file.LastWriteTimeUtc, TimeSpan.FromMinutes(_settings.HttpCacheControlMaxAgeInMinutes),
+            fs.Length, file.Name, format.DefaultMimeType, rMetaData.Path);
     }
 
     public async Task Save(byte[] image, RequestMetaData rMetaData)

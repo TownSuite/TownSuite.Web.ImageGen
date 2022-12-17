@@ -14,16 +14,16 @@ public class ImageProvider
         _cache = cache;
     }
 
-    public async Task<(byte[] image, ImageMetaData metadata)> GetAsync(RequestMetaData rMetaData)
+    public async Task<ImageMetaData> GetAsync(RequestMetaData rMetaData)
     {
         var cacheResults = await _cache.GetAsync(rMetaData);
-        if (cacheResults.image != null)
+        if (cacheResults != null)
         {
             return cacheResults;
         }
 
         var results = await _imageRepository.Get(rMetaData);
         await _cache.Save(results.imageData, rMetaData);
-        return results;
+        return results.metadata;
     }
 }

@@ -48,7 +48,7 @@ public class ImageProxyRepo : IImageRepository
         var img2 = await Helper.BinaryAsBytes(img, proxyRequest.ImageFormat);
         var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromMinutes(_settings.HttpCacheControlMaxAgeInMinutes), img2.image.Length,
             $"{request.Id}.{img2.fileExt}",
-            img2.contentType);
+            img2.contentType, request.Path);
         return (img2.image, md);
     }
 

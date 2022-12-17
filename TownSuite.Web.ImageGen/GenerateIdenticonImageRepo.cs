@@ -34,7 +34,7 @@ public class GenerateIdenticonImageRepo : IImageRepository
         var imd = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromMinutes(_settings.HttpCacheControlMaxAgeInMinutes),
             result.image.Length,
             $"{request.Id}.{request.ImageFormat}",
-            result.contentType);
+            result.contentType, request.Path);
         return (result.image, imd);
     }
 }
