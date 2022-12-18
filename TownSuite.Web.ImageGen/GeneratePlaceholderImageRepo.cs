@@ -24,7 +24,7 @@ public class GeneratePlaceholderImageRepo : IImageRepository
     public async Task<(byte[] imageData, ImageMetaData metadata)> Get(RequestMetaData request)
     {
         var font = GetFont("Hack", 25);
-        var img2 = await DrawText(request.Id, font, Color.Aqua, Random.Shared, request);
+        var img2 = await DrawText(request.Id, font, request);
         var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromMinutes(_settings.HttpCacheControlMaxAgeInMinutes),
             img2.image.Length,
             $"{request.Id}.{img2.fileExt}",
@@ -34,13 +34,17 @@ public class GeneratePlaceholderImageRepo : IImageRepository
 
     static async Task<(byte[] image, string fileExt, string contentType)> DrawText(string text,
         SixLabors.Fonts.Font font,
-        SixLabors.ImageSharp.Color textColor,
-        Random randonGen, RequestMetaData request)
+        RequestMetaData request)
     {
+        int hash = request.Path.GetHashCode();
+        byte r = Convert.ToByte((hash & 0xFF0000) >> 16);
+        byte g = Convert.ToByte((hash & 0x00FF00) >> 8);
+        byte b = Convert.ToByte(hash & 0x0000FF);
+        
         using Image image = new Image<Rgba32>(request.Width, request.Height);
-        Color randomColor = Color.FromRgb(Convert.ToByte(randonGen.Next(255)), Convert.ToByte(randonGen.Next(255)),
-            Convert.ToByte(randonGen.Next(255)));
-        image.Mutate(x => x.Clear(randomColor));
+        Color bgColor = Color.FromRgb(r, g, b);
+        Color textColor = Color.FromRgb(b, r, g);
+        image.Mutate(x => x.Clear(bgColor));
         var location = new PointF(0, (int)(request.Height / 2.5));
         image.Mutate(x => x.DrawText(text, font,
             textColor, location));
