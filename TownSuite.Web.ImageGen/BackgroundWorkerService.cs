@@ -35,8 +35,12 @@ public class BackgroundWorkerService : BackgroundService
             {
                 _logger.LogError(ex, "");
             }
+            finally
+            {
+                await Task.Delay(TimeSpan.FromSeconds(_settings.CacheBackgroundCleanupTimerSeconds), cancellationToken);
+            }
 
-            await Task.Delay(TimeSpan.FromSeconds(_settings.CacheBackgroundCleanupTimerSeconds), cancellationToken);
+            
         }
     }
 
