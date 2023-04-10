@@ -18,7 +18,10 @@ public static class Helper
         if (string.Equals(image_format, "jpg", StringComparison.InvariantCultureIgnoreCase)
             || string.Equals(image_format, "jpeg", StringComparison.InvariantCultureIgnoreCase))
         {
-            await image.SaveAsync(ms, new JpegEncoder());
+            await image.SaveAsync(ms, new JpegEncoder()
+            {
+                Quality = 85
+            });
             extension = "jpeg";
             contentType = "image/jpeg";
         }
