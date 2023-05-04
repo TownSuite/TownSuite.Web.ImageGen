@@ -1,13 +1,5 @@
-using System.Diagnostics.Eventing.Reader;
 using System.Net.Mime;
-using System.Net.NetworkInformation;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using System.Xml;
-using MimeDetective;
-using MimeDetective.Definitions;
-using MimeDetective.Storage;
-using MimeDetective.Storage.Xml.v2;
+using System.Text;
 using SixLabors.ImageSharp;
 
 namespace TownSuite.Web.ImageGen;
@@ -32,7 +24,14 @@ public class ImageCacheProvider : IImageCacheProvider
         string mimetype = format?.DefaultMimeType;
         if (string.IsNullOrWhiteSpace(mimetype))
         {
-           mimetype = Getmimetype(fs);
+          if (IsSvg(fs))
+          {
+           mimetype = "image/svg+xml";
+          }
+          else
+          {
+           mimetype = "";
+          }
         }
         fs.Seek(0, SeekOrigin.Begin);
         return new ImageMetaData(file.LastWriteTimeUtc, TimeSpan.FromMinutes(_settings.HttpCacheControlMaxAgeInMinutes),
@@ -47,18 +46,42 @@ public class ImageCacheProvider : IImageCacheProvider
         }
         await System.IO.File.WriteAllBytesAsync(rMetaData.Path, image);
     }
-    string Getmimetype(FileStream fs)
+    public bool IsSvg(Stream stream)
     {
-        var Inspector = new ContentInspectorBuilder()
+        int headerSize = (int)Math.Min(512, stream.Length);
+        if (headerSize <= 0)
         {
-            Definitions = new MimeDetective.Definitions.CondensedBuilder()
-            {
-                UsageType = MimeDetective.Definitions.Licensing.UsageType.PersonalNonCommercial
-            }.Build()
-        }.Build();
+            return false;
+        }
+        var headersBuffer = new byte[headerSize];
+        long startPosition = stream.Position;
 
-        var Results = Inspector.Inspect(fs);
-        var ResultsByMimeType = Results.ByMimeType();
-        return Convert.ToString(ResultsByMimeType);
+        int n = 0;
+        int i;
+        do
+        {
+            i = stream.Read(headersBuffer, n, headerSize - n);
+            n += i;
+        }
+        while (n < headerSize && i > 0);
+
+        stream.Position = startPosition;
+
+        string header = Encoding.UTF8.GetString(headersBuffer);
+        string svg1 = Encoding.UTF8.GetString(HexToBytes("3C73766720"));
+        string svg2 = Encoding.UTF8.GetString(HexToBytes("3C21444F43545950452073766720"));
+        string svg3 = Encoding.UTF8.GetString(HexToBytes("3C3F786D6C20"));
+
+        return header.Contains(svg1) || header.Contains(svg2) || header.Contains(svg3);
+    }
+
+    byte[] HexToBytes(string hex)
+    {
+        var bytes = new byte[hex.Length / 2];
+        for (var i = 0; i < bytes.Length; i++)
+        {
+            bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
+        }
+        return bytes;
     }
 }
