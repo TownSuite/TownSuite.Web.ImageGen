@@ -10,7 +10,6 @@ using MimeDetective.Storage;
 using MimeDetective.Storage.Xml.v2;
 using SixLabors.ImageSharp;
 
-
 namespace TownSuite.Web.ImageGen;
 
 public class ImageCacheProvider : IImageCacheProvider
@@ -48,10 +47,8 @@ public class ImageCacheProvider : IImageCacheProvider
         }
         await System.IO.File.WriteAllBytesAsync(rMetaData.Path, image);
     }
-
     string Getmimetype(FileStream fs)
     {
-        
         var Inspector = new ContentInspectorBuilder()
         {
             Definitions = new MimeDetective.Definitions.CondensedBuilder()
@@ -60,10 +57,8 @@ public class ImageCacheProvider : IImageCacheProvider
             }.Build()
         }.Build();
 
-
         var Results = Inspector.Inspect(fs);
         var ResultsByMimeType = Results.ByMimeType();
         return Convert.ToString(ResultsByMimeType);
     }
 }
-

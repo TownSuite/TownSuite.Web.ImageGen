@@ -101,7 +101,6 @@ public class ImageProxyRepoTest
     [Test()]
     public async Task SVGTEST()
     {
-        
         var downloader = new DownloaderFake("image/svg+xml");
         var repo = new ImageProxyRepo(downloader, new Settings()
         {
