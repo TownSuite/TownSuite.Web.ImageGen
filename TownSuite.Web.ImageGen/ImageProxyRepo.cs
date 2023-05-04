@@ -23,7 +23,20 @@ public class ImageProxyRepo : IImageRepository
     public async Task<(byte[] imageData, ImageMetaData metadata)> Get(RequestMetaData request)
     {
         var proxyRequest = request as ImageProxyRequestMetaData;
-        var img = await _downloader.Download(proxyRequest.ImageSrcUrl);
+        var result = await _downloader.Download(proxyRequest.ImageSrcUrl);
+        await using var downloadStream = result.S;
+        if (string.Equals(result.ContentType, "image/svg+xml", StringComparison.InvariantCultureIgnoreCase))
+        {
+            using var ms = new MemoryStream();
+            await downloadStream.CopyToAsync(ms);
+            var svg = ms.ToArray();
+            var mdSvg = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromMinutes(_settings.HttpCacheControlMaxAgeInMinutes), svg.Length,
+                $"{request.Id}.svg",
+                "image/svg+xml", request.Path);
+            return (svg, mdSvg);
+        }
+        
+        var img = await Image.LoadAsync(downloadStream);
 
         if (proxyRequest.WidthChangeRequested && proxyRequest.HeightChangeRequested
             && ResizeRequestIsSmallerOrEqualToOrignalSize(proxyRequest, img))

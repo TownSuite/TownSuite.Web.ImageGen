@@ -23,7 +23,7 @@ public class GenerateIdenticonImageRepoTest
         Assert.That(origImage.Height, Is.EqualTo(365));
         Assert.That(origImage.Width, Is.EqualTo(800));
         
-        var downloader = new DownloaderFake();
+        var downloader = new DownloaderFake("image/jpeg");
         var repo = new GenerateIdenticonImageRepo(new Settings()
         {
             HttpCacheControlMaxAgeInMinutes = 5

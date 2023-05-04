@@ -4,8 +4,14 @@ namespace TownSuite.Web.ImageGen.Tests;
 
 public class DownloaderFake : IImageDownloader
 {
-    public async Task<Image> Download(string srcUrl)
+    readonly string _contentType;
+    public DownloaderFake(string contentType)
     {
-        return await Image.LoadAsync(srcUrl);
+        _contentType = contentType;
+    }
+    public Task<(Stream S, string ContentType)> Download(string srcUrl)
+    {
+        Stream fs = new FileStream(srcUrl, FileMode.Open);
+        return Task.FromResult((fs,_contentType));
     }
 }
