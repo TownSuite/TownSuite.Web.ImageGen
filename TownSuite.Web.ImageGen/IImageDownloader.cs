@@ -4,5 +4,5 @@ namespace TownSuite.Web.ImageGen;
 
 public interface IImageDownloader
 {
-    Task<Image> Download(string srcUrl);
+    Task<(Stream S, string ContentType)> Download(string srcUrl);
 }

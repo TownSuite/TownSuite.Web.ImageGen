@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Primitives;
@@ -23,7 +24,7 @@ public class ImageProxyRepoTest
         Assert.That(origImage.Height, Is.EqualTo(365));
         Assert.That(origImage.Width, Is.EqualTo(800));
         
-        var downloader = new DownloaderFake();
+        var downloader = new DownloaderFake("image/jpeg");
         var repo = new ImageProxyRepo(downloader, new Settings()
         {
             HttpCacheControlMaxAgeInMinutes = 5
@@ -57,7 +58,7 @@ public class ImageProxyRepoTest
         Assert.That(origImage.Height, Is.EqualTo(365));
         Assert.That(origImage.Width, Is.EqualTo(800));
         
-        var downloader = new DownloaderFake();
+        var downloader = new DownloaderFake("image/jpeg");
         var repo = new ImageProxyRepo(downloader, new Settings()
         {
             HttpCacheControlMaxAgeInMinutes = 5
@@ -95,5 +96,34 @@ public class ImageProxyRepoTest
 
         
         return (new QueryCollection(queries), $"?h={h}&w={w}&imgformat={imgformat}");
+    }
+
+    [Test()]
+    public async Task SVGTEST()
+    {
+        var downloader = new DownloaderFake("image/svg+xml");
+        var repo = new ImageProxyRepo(downloader, new Settings()
+        {
+            HttpCacheControlMaxAgeInMinutes = 5
+        });
+        var request = new ImageProxyRequestMetaData();
+        var query = CreateContext(333, 333, "svg");
+
+        request.GetRequestMetaData(new Settings()
+        {
+            CacheFolder = "cache/folder/",
+            MaxHeight = 1000,
+            MaxWidth = 1000
+        },
+            query.query,
+            query.rawQuery,
+            "/proxy/assets%2Flogo.svg",
+            "test_output");
+        var results = await repo.Get(request);
+
+        using var ms = new MemoryStream(results.imageData);
+        string image = Encoding.UTF8.GetString(ms.ToArray());
+        Assert.That(results.metadata.ContentType, Is.EqualTo($"image/svg+xml"));
+        Assert.That(image.Contains("svg version=\"1.1\""), Is.EqualTo(true));
     }
 }

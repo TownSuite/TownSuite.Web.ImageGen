@@ -13,7 +13,7 @@ public class ImageDownloader : IImageDownloader
         _settings = settings;
     }
 
-    public async Task<Image> Download(string srcUrl)
+    public async Task<(Stream S, string ContentType)> Download(string srcUrl)
     {
         var client = _clientFactory.CreateClient();
         using var request = new HttpRequestMessage(HttpMethod.Get, srcUrl);
@@ -21,6 +21,10 @@ public class ImageDownloader : IImageDownloader
         
         using var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
-        return await Image.LoadAsync(await response.Content.ReadAsStreamAsync());
+        var ms = new MemoryStream();
+        await response.Content.CopyToAsync(ms);
+        await ms.FlushAsync();
+        ms.Position = 0;
+        return (ms, response.Content.Headers?.ContentType?.ToString() ?? "");
     }
 }
