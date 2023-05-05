@@ -125,6 +125,5 @@ public class ImageProxyRepoTest
         string image = Encoding.UTF8.GetString(ms.ToArray());
         Assert.That(results.metadata.ContentType, Is.EqualTo($"image/svg+xml"));
         Assert.That(image.Contains("svg version=\"1.1\""), Is.EqualTo(true));
-
     }
 }
