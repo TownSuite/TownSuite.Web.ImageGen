@@ -6,7 +6,6 @@ namespace TownSuite.Web.ImageGen;
 
 public class ImageCacheProvider : IImageCacheProvider
 {
-
     private readonly Settings _settings;
 
     public ImageCacheProvider(Settings settings)
@@ -24,15 +23,17 @@ public class ImageCacheProvider : IImageCacheProvider
         string mimetype = format?.DefaultMimeType;
         if (string.IsNullOrWhiteSpace(mimetype))
         {
-          if (IsSvg(fs))
-          {
-           mimetype = "image/svg+xml";
-          }
-          else
-          {
-           mimetype = "";
-          }
+            fs.Position = 0;
+            if (IsSvg(fs))
+            {
+                mimetype = "image/svg+xml";
+            }
+            else
+            {
+                mimetype = "";
+            }
         }
+
         fs.Seek(0, SeekOrigin.Begin);
         return new ImageMetaData(file.LastWriteTimeUtc, TimeSpan.FromMinutes(_settings.HttpCacheControlMaxAgeInMinutes),
             fs.Length, file.Name, mimetype, rMetaData.Path);
@@ -44,15 +45,18 @@ public class ImageCacheProvider : IImageCacheProvider
         {
             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(rMetaData.Path));
         }
+
         await System.IO.File.WriteAllBytesAsync(rMetaData.Path, image);
     }
-    public bool IsSvg(Stream stream)
+
+    private bool IsSvg(Stream stream)
     {
         int headerSize = (int)Math.Min(512, stream.Length);
         if (headerSize <= 0)
         {
             return false;
         }
+
         var headersBuffer = new byte[headerSize];
         long startPosition = stream.Position;
 
@@ -62,8 +66,7 @@ public class ImageCacheProvider : IImageCacheProvider
         {
             i = stream.Read(headersBuffer, n, headerSize - n);
             n += i;
-        }
-        while (n < headerSize && i > 0);
+        } while (n < headerSize && i > 0);
 
         stream.Position = startPosition;
 
@@ -82,6 +85,7 @@ public class ImageCacheProvider : IImageCacheProvider
         {
             bytes[i] = Convert.ToByte(hex.Substring(i * 2, 2), 16);
         }
+
         return bytes;
     }
 }
