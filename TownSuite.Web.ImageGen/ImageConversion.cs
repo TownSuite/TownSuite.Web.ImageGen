@@ -36,10 +36,8 @@ namespace TownSuite.Web.ImageGen
         public static HeifImage ConvertToHeifImage(Image<Rgba32> image, bool premultiplyAlpha)
         {
             (bool isGrayscale, bool hasTransparency) = AnalyzeImage(image);
-
             var colorspace = isGrayscale ? HeifColorspace.Monochrome : HeifColorspace.Rgb;
             HeifChroma chroma;
-
             if (colorspace == HeifColorspace.Monochrome)
             {
                 chroma = HeifChroma.Monochrome;
@@ -48,23 +46,18 @@ namespace TownSuite.Web.ImageGen
             {
                 chroma = hasTransparency ? HeifChroma.InterleavedRgba32 : HeifChroma.InterleavedRgb24;
             }
-
-            HeifImage heifImage = null;
-            HeifImage temp = null;
-
+            HeifImage? heifImage = null;
+            HeifImage? temp = null;
             try
             {
                 temp = new HeifImage(image.Width, image.Height, colorspace, chroma);
-
                 if (colorspace == HeifColorspace.Monochrome)
                 {
                     temp.AddPlane(HeifChannel.Y, image.Width, image.Height, 8);
-
                     if (hasTransparency)
                     {
                         temp.AddPlane(HeifChannel.Alpha, image.Width, image.Height, 8);
                     }
-
                     CopyGrayscale(image, temp, hasTransparency, premultiplyAlpha);
                 }
                 else
@@ -73,7 +66,6 @@ namespace TownSuite.Web.ImageGen
 
                     CopyRgb(image, temp, hasTransparency, premultiplyAlpha);
                 }
-
                 heifImage = temp;
                 temp = null;
             }
@@ -81,7 +73,6 @@ namespace TownSuite.Web.ImageGen
             {
                 temp?.Dispose();
             }
-
             return heifImage;
         }
 
@@ -89,22 +80,18 @@ namespace TownSuite.Web.ImageGen
         {
             bool isGrayscale = true;
             bool hasTransparency = false;
-
             image.ProcessPixelRows(accessor =>
             {
                 for (int y = 0; y < accessor.Height; y++)
                 {
                     var src = accessor.GetRowSpan(y);
-
                     for (int x = 0; x < accessor.Width; x++)
                     {
                         ref var pixel = ref src[x];
-
                         if (!(pixel.R == pixel.G && pixel.G == pixel.B))
                         {
                             isGrayscale = false;
                         }
-
                         if (pixel.A < 255)
                         {
                             hasTransparency = true;
@@ -112,7 +99,6 @@ namespace TownSuite.Web.ImageGen
                     }
                 }
             });
-
             return (isGrayscale, hasTransparency);
         }
 
@@ -122,17 +108,13 @@ namespace TownSuite.Web.ImageGen
                                                  bool premultiplyAlpha)
         {
             var grayPlane = heifImage.GetPlane(HeifChannel.Y);
-
             byte* grayPlaneScan0 = (byte*)grayPlane.Scan0;
             int grayPlaneStride = grayPlane.Stride;
-
             if (hasTransparency)
             {
                 var alphaPlane = heifImage.GetPlane(HeifChannel.Alpha);
-
                 byte* alphaPlaneScan0 = (byte*)alphaPlane.Scan0;
                 int alphaPlaneStride = alphaPlane.Stride;
-
                 image.ProcessPixelRows(accessor =>
                 {
                     for (int y = 0; y < accessor.Height; y++)
@@ -140,11 +122,9 @@ namespace TownSuite.Web.ImageGen
                         var src = accessor.GetRowSpan(y);
                         byte* dst = grayPlaneScan0 + (y * grayPlaneStride);
                         byte* dstAlpha = alphaPlaneScan0 + (y * alphaPlaneStride);
-
                         for (int x = 0; x < accessor.Width; x++)
                         {
                             ref var pixel = ref src[x];
-
                             if (premultiplyAlpha)
                             {
                                 switch (pixel.A)
@@ -165,7 +145,6 @@ namespace TownSuite.Web.ImageGen
                                 dst[0] = pixel.R;
                             }
                             dstAlpha[0] = pixel.A;
-
                             dst++;
                             dstAlpha++;
                         }
@@ -180,13 +159,10 @@ namespace TownSuite.Web.ImageGen
                     {
                         var src = accessor.GetRowSpan(y);
                         byte* dst = grayPlaneScan0 + (y * grayPlaneStride);
-
                         for (int x = 0; x < accessor.Width; x++)
                         {
                             ref var pixel = ref src[x];
-
                             dst[0] = pixel.R;
-
                             dst++;
                         }
                     }
@@ -200,10 +176,8 @@ namespace TownSuite.Web.ImageGen
                                            bool premultiplyAlpha)
         {
             var interleavedData = heifImage.GetPlane(HeifChannel.Interleaved);
-
             byte* srcScan0 = (byte*)interleavedData.Scan0;
             int srcStride = interleavedData.Stride;
-
             if (hasTransparency)
             {
                 image.ProcessPixelRows(accessor =>
@@ -212,11 +186,9 @@ namespace TownSuite.Web.ImageGen
                     {
                         var src = accessor.GetRowSpan(y);
                         byte* dst = srcScan0 + (y * srcStride);
-
                         for (int x = 0; x < accessor.Width; x++)
                         {
                             ref var pixel = ref src[x];
-
                             if (premultiplyAlpha)
                             {
                                 switch (pixel.A)
@@ -245,7 +217,6 @@ namespace TownSuite.Web.ImageGen
                                 dst[2] = pixel.B;
                             }
                             dst[3] = pixel.A;
-
                             dst += 4;
                         }
                     }
@@ -259,15 +230,12 @@ namespace TownSuite.Web.ImageGen
                     {
                         var src = accessor.GetRowSpan(y);
                         byte* dst = srcScan0 + (y * srcStride);
-
                         for (int x = 0; x < accessor.Width; x++)
                         {
                             ref var pixel = ref src[x];
-
                             dst[0] = pixel.R;
                             dst[1] = pixel.G;
                             dst[2] = pixel.B;
-
                             dst += 3;
                         }
                     }
