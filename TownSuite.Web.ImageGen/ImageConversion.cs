@@ -29,12 +29,10 @@ using LibHeifSharp;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-
 namespace TownSuite.Web.ImageGen
 {
     internal static class ImageConversion
     {
-
         public static HeifImage ConvertToHeifImage(Image<Rgba32> image, bool premultiplyAlpha)
         {
             (bool isGrayscale, bool hasTransparency) = AnalyzeImage(image);
@@ -195,7 +193,6 @@ namespace TownSuite.Web.ImageGen
                 });
             }
         }
-
 
         private static unsafe void CopyRgb(Image<Rgba32> image,
                                            HeifImage heifImage,
