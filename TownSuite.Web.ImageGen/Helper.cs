@@ -45,24 +45,10 @@ public static class Helper
             using (var heifImage = ImageConversion.ConvertToHeifImage(image.CloneAs<Rgba32>(), premultiplyAlpha: false))
             {
                 var encoder = context.GetEncoder(HeifCompressionFormat.Av1);
-                encoder.SetLossyQuality(85); // Adjust quality as needed
-
+                encoder.SetLossyQuality(85);
                 context.EncodeImage(heifImage, encoder);
-
-                // Write the HeifImage to a temporary file
-                var tempFilePath = Path.GetRandomFileName();
-                context.WriteToFile(tempFilePath);
-
-                // Read the temporary file into the MemoryStream
-                using (var fileStream = File.OpenRead(tempFilePath))
-                {
-                    await fileStream.CopyToAsync(ms);
-                }
-
-                // Delete the temporary file
-                File.Delete(tempFilePath);
+                context.WriteToStream(ms);
             }
-
             extension = "avif";
             contentType = "image/avif";
         }
@@ -72,25 +58,10 @@ public static class Helper
             using (var heifImage = ImageConversion.ConvertToHeifImage(image.CloneAs<Rgba32>(), premultiplyAlpha: false))
             {
                 var encoder = context.GetEncoder(HeifCompressionFormat.Hevc);
-                encoder.SetLossyQuality(85); // Adjust quality as needed
-
+                encoder.SetLossyQuality(85); 
                 context.EncodeImage(heifImage, encoder);
-
-                // Write the HeifImage to a temporary file
-                var tempFilePath = Path.GetRandomFileName();
-                context.WriteToFile(tempFilePath);
-      
-
-                // Read the temporary file into the MemoryStream
-                using (var fileStream = File.OpenRead(tempFilePath))
-                {
-                    await fileStream.CopyToAsync(ms);
-                }
-
-                // Delete the temporary file
-                File.Delete(tempFilePath);
+                context.WriteToStream(ms);
             }
-
             extension = "heif";
             contentType = "image/heif";
         }
