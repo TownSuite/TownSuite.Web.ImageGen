@@ -7,10 +7,12 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <RootNamespace>TownSuite.Web.ImageGen</RootNamespace>
         <UserSecretsId>de2702d9-c67c-4d6d-8c11-5862a6057efe</UserSecretsId>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Jdenticon-net" Version="3.1.2" />
+      <PackageReference Include="LibHeifSharp" Version="3.1.0" />
       <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
       <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta15" />
     </ItemGroup>
