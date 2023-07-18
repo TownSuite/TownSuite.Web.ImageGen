@@ -52,7 +52,8 @@ public static class Helper
             extension = "avif";
             contentType = "image/avif";
         }
-        else if (string.Equals(image_format, "heif", StringComparison.InvariantCultureIgnoreCase))
+        else if (string.Equals(image_format, "heif", StringComparison.InvariantCultureIgnoreCase)
+            || string.Equals(image_format, "heic", StringComparison.InvariantCultureIgnoreCase))
         {
             using (var context = new HeifContext())
             using (var heifImage = ImageConversion.ConvertToHeifImage(image.CloneAs<Rgba32>()))
