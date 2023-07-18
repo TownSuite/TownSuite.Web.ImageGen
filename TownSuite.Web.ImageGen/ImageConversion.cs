@@ -123,7 +123,7 @@ namespace TownSuite.Web.ImageGen
                         for (int x = 0; x < accessor.Width; x++)
                         {
                             ref var pixel = ref src[x];
-                            SetAlpha(pixel.A, alphaStartPtr + x + (y * grayPlaneStride));
+                            SetAlpha(pixel.A, alphaStartPtr + x + (y * alphaPlaneStride));
                             SetGrayscale(pixel.R, grayStartPtr + x + (y * grayPlaneStride));
                         }
                     }
