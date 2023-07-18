@@ -35,8 +35,6 @@ public class ImageProxyRepo : IImageRepository
                 "image/svg+xml", request.Path);
             return (svg, mdSvg);
         }
-        // Check image type. If AVIF or HEIF convert to png, and write to stream.
-        // Should need no other adjustments to support proxying AVIF and HEIF.
 
         var img = await Image.LoadAsync(downloadStream);
 
