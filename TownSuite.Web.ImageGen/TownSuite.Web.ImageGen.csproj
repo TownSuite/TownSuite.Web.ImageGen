@@ -7,7 +7,6 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <RootNamespace>TownSuite.Web.ImageGen</RootNamespace>
         <UserSecretsId>de2702d9-c67c-4d6d-8c11-5862a6057efe</UserSecretsId>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
