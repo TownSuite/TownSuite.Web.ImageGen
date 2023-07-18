@@ -198,6 +198,5 @@ namespace TownSuite.Web.ImageGen
             Marshal.WriteByte(pixelPtr + 2, B);
             Marshal.WriteByte(pixelPtr + 3, A);
         }
-
     }
 }
