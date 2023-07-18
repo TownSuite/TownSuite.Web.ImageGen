@@ -35,7 +35,7 @@ public class ImageProxyRepo : IImageRepository
                 "image/svg+xml", request.Path);
             return (svg, mdSvg);
         }
-
+        
         var img = await Image.LoadAsync(downloadStream);
 
         if (proxyRequest.WidthChangeRequested && proxyRequest.HeightChangeRequested
@@ -57,7 +57,7 @@ public class ImageProxyRepo : IImageRepository
             img.Mutate(x => x
                 .Resize(0, proxyRequest.Height));
         }
-
+        
         var img2 = await Helper.BinaryAsBytes(img, proxyRequest.ImageFormat);
         var md = new ImageMetaData(DateTime.UtcNow, TimeSpan.FromMinutes(_settings.HttpCacheControlMaxAgeInMinutes), img2.image.Length,
             $"{request.Id}.{img2.fileExt}",
