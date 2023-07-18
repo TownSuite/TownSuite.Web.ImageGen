@@ -42,7 +42,7 @@ public static class Helper
         else if (string.Equals(image_format, "avif", StringComparison.InvariantCultureIgnoreCase))
         {
             using (var context = new HeifContext())
-            using (var heifImage = ImageConversion.ConvertToHeifImage(image.CloneAs<Rgba32>(), premultiplyAlpha: false))
+            using (var heifImage = ImageConversion.ConvertToHeifImage(image.CloneAs<Rgba32>()))
             {
                 var encoder = context.GetEncoder(HeifCompressionFormat.Av1);
                 encoder.SetLossyQuality(85);
@@ -55,7 +55,7 @@ public static class Helper
         else if (string.Equals(image_format, "heif", StringComparison.InvariantCultureIgnoreCase))
         {
             using (var context = new HeifContext())
-            using (var heifImage = ImageConversion.ConvertToHeifImage(image.CloneAs<Rgba32>(), premultiplyAlpha: false))
+            using (var heifImage = ImageConversion.ConvertToHeifImage(image.CloneAs<Rgba32>()))
             {
                 var encoder = context.GetEncoder(HeifCompressionFormat.Hevc);
                 encoder.SetLossyQuality(85); 
