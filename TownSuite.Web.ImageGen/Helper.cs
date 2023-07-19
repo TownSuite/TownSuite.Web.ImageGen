@@ -63,8 +63,8 @@ public static class Helper
                 context.EncodeImage(heifImage, encoder);
                 context.WriteToStream(ms);
             }
-            extension = "heif";
-            contentType = "image/heif";
+            extension = "heic";
+            contentType = "image/heic";
         }
         else
         {
