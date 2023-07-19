@@ -14,7 +14,7 @@ public class GeneratePlaceHolderImageRepoTest
     {
     }
 
-    private static string[] ImageFormatCases = new string[] { "jpeg", "png", "gif", "webp" };
+    private static string[] ImageFormatCases = new string[] { "jpeg", "png", "gif", "webp", "avif", "heic" };
     
     [Test, TestCaseSource("ImageFormatCases")]
     public async Task Test1(string imageformat)
@@ -42,6 +42,12 @@ public class GeneratePlaceHolderImageRepoTest
             "/placeholder/hello",
             "test_output");
         var results = await repo.Get(request);
+
+        if (imageformat == "avif" || imageformat == "heic" )
+        {
+            Assert.That(results.metadata.ContentType, Is.EqualTo($"image/{imageformat}"));
+            return;
+        }
 
         using var ms = new MemoryStream(results.imageData);
         var newImage = await Image.LoadAsync(ms);
