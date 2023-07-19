@@ -17,7 +17,6 @@ public class ImageProxyRepoTest
 
     private static string[] ImageFormatCases = new string[] { "jpeg", "png", "gif", "webp", "avif", "heic" };
 
-
     [Test, TestCaseSource("ImageFormatCases")]
     public async Task Test1(string imageformat)
     {
