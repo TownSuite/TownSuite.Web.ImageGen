@@ -6,7 +6,7 @@ EXPOSE 80
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS libheif-build
-RUN apk add --no-cache build-base git cmake yasm perl libde265 libde265-dev x265 x265-dev
+RUN apk add --no-cache build-base git cmake yasm perl x265 x265-dev
 WORKDIR /tmp
 RUN git clone --depth 1 https://aomedia.googlesource.com/aom
 WORKDIR /tmp/aom
