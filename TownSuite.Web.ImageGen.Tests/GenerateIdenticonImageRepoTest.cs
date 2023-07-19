@@ -42,16 +42,15 @@ public class GenerateIdenticonImageRepoTest
             "/avatar/hello",
             "test_output");
         var results = await repo.Get(request);
+        Assert.That(results.metadata.ContentType, Is.EqualTo($"image/{imageformat}"));
 
         if (imageformat == "avif" || imageformat == "heic")
         {
-            Assert.That(results.metadata.ContentType, Is.EqualTo($"image/{imageformat}"));
             return; // Decoding avif and heic is not supported yet. If decoding is added, test it here.
         }
 
         using var ms = new MemoryStream(results.imageData);
         var newImage = await Image.LoadAsync(ms);
-        Assert.That(results.metadata.ContentType, Is.EqualTo($"image/{imageformat}"));
         Assert.That(newImage.Height, Is.EqualTo(777));
         Assert.That(newImage.Width, Is.EqualTo(777));
     }
