@@ -10,7 +10,7 @@ RUN apk add --no-cache build-base git cmake yasm perl x265 x265-dev
 WORKDIR /tmp
 RUN git clone --depth 1 https://aomedia.googlesource.com/aom
 WORKDIR /tmp/aom
-RUN mkdir -p build && cd build && cmake .. && make -j4 && make install
+RUN mkdir -p build && cd build && cmake .. && make -j$(nproc) && make install
 WORKDIR /app
 RUN git clone --depth 1 https://github.com/strukturag/libheif.git
 WORKDIR /app/libheif
@@ -22,7 +22,7 @@ RUN cmake \
     -DWITH_LIBDE265=ON \
     -DWITH_X265=ON \
     ..
-RUN make
+RUN make -j$(nproc)
 RUN make install
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build
