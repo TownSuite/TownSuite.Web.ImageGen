@@ -19,7 +19,6 @@ WORKDIR /app/libheif/build
 RUN cmake \
     -DCMAKE_BUILD_TYPE=Release \
     -DWITH_EXAMPLES=OFF \
-    -DWITH_LIBDE265=ON \
     -DWITH_X265=ON \
     ..
 RUN make -j$(nproc)
@@ -37,7 +36,6 @@ FROM build AS publish
 RUN dotnet publish "TownSuite.Web.ImageGen.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
-COPY --from=libheif-build /usr/lib/libde265.so* /usr/lib/
 COPY --from=libheif-build /usr/lib/libx265.so* /usr/lib/
 COPY --from=libheif-build /usr/local/lib/libheif.so* /usr/local/lib
 COPY --from=libheif-build /usr/lib/libstdc++.so.6 /usr/lib/libstdc++.so.6
