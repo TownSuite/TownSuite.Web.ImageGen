@@ -46,7 +46,7 @@ public class GenerateIdenticonImageRepoTest
         if (imageformat == "avif" || imageformat == "heic")
         {
             Assert.That(results.metadata.ContentType, Is.EqualTo($"image/{imageformat}"));
-            return;
+            return; // Decoding avif and heic is not supported yet. If decoding is added, test it here.
         }
 
         using var ms = new MemoryStream(results.imageData);
