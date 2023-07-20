@@ -32,9 +32,9 @@ using System.Runtime.InteropServices;
 
 namespace TownSuite.Web.ImageGen
 {
-    internal static class ImageConversion
+    internal static class HeifEncoder
     {
-        public static HeifImage ConvertToHeifImage(Image<Rgba32> image)
+        public static HeifImage ConvertSharpToHeif(Image<Rgba32> image)
         {
             (bool isGrayscale, bool hasTransparency) = AnalyzeImage(image);
             var colorspace = isGrayscale ? HeifColorspace.Monochrome : HeifColorspace.Rgb;
