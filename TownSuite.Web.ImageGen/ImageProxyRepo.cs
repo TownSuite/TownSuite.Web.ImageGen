@@ -36,7 +36,17 @@ public class ImageProxyRepo : IImageRepository
             return (svg, mdSvg);
         }
         
-        var img = await Image.LoadAsync(downloadStream);
+        Image img;
+
+        if (string.Equals(result.ContentType, "image/avif", StringComparison.InvariantCultureIgnoreCase)
+                       || string.Equals(result.ContentType, "image/heic", StringComparison.InvariantCultureIgnoreCase))
+        {
+            img = HeifDecoder.ConvertHeifToSharp(downloadStream);
+        }
+        else
+        {
+            img = await Image.LoadAsync(downloadStream);
+        }
 
         if (proxyRequest.WidthChangeRequested && proxyRequest.HeightChangeRequested
             && ResizeRequestIsSmallerOrEqualToOrignalSize(proxyRequest, img))
