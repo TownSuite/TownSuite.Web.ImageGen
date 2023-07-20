@@ -44,14 +44,16 @@ public class ImageProxyRepoTest
             "test_output");
         var results = await repo.Get(request);
         Assert.That(results.metadata.ContentType, Is.EqualTo($"image/{imageformat}"));
-
+        using var ms = new MemoryStream(results.imageData);
+        Image newImage;
         if (imageformat == "avif" || imageformat == "heic")
         {
-            return; // Decoding avif and heic is not supported yet. If decoding is added, test it here.
+            newImage = HeifDecoder.ConvertHeifToSharp(ms);
         }
-
-        using var ms = new MemoryStream(results.imageData);
-        var newImage = await Image.LoadAsync(ms);
+        else
+        {
+            newImage = await Image.LoadAsync(ms);
+        }
         Assert.That(newImage.Height, Is.EqualTo(333));
         Assert.That(newImage.Width, Is.EqualTo(333));
     }
@@ -83,14 +85,16 @@ public class ImageProxyRepoTest
             "test_output");
         var results = await repo.Get(request);
         Assert.That(results.metadata.ContentType, Is.EqualTo($"image/{imageformat}"));
-
+        using var ms = new MemoryStream(results.imageData);
+        Image newImage;
         if (imageformat == "avif" || imageformat == "heic")
         {
-            return; // Decoding avif and heic is not supported yet. If decoding is added, test it here.
+            newImage = HeifDecoder.ConvertHeifToSharp(ms);
         }
-
-        using var ms = new MemoryStream(results.imageData);
-        var newImage = await Image.LoadAsync(ms);
+        else
+        {
+            newImage = await Image.LoadAsync(ms);
+        }
         Assert.That(newImage.Height, Is.EqualTo(365));
         Assert.That(newImage.Width, Is.EqualTo(800));
     }
