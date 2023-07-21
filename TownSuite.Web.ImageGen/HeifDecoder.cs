@@ -13,12 +13,12 @@ namespace TownSuite.Web.ImageGen
             stream.CopyTo(ms);
    
             using var heifContext = new HeifContext(ms.ToArray());
-            using var srcImageHandle = heifContext.GetPrimaryImageHandle();
-            using var srcImage = srcImageHandle.Decode(HeifColorspace.Rgb, HeifChroma.InterleavedRgba32);
+            using HeifImageHandle srcImageHandle = heifContext.GetPrimaryImageHandle();
+            using HeifImage srcImage = srcImageHandle.Decode(HeifColorspace.Rgb, HeifChroma.InterleavedRgba32);
 
             var outImage = new Image<Rgba32>(srcImage.Width, srcImage.Height);
 
-            var planeData = srcImage.GetPlane(HeifChannel.Interleaved);
+            HeifPlaneData planeData = srcImage.GetPlane(HeifChannel.Interleaved);
             IntPtr startPtr = planeData.Scan0;
             int stride = planeData.Stride;
 
@@ -26,7 +26,7 @@ namespace TownSuite.Web.ImageGen
             {
                for (int x = 0; x < srcImage.Width; x++)
                 {
-                   var ptr = startPtr + (y * stride) + (x * 4);
+                   IntPtr ptr = startPtr + (y * stride) + (x * 4);
                    var r = Marshal.ReadByte(ptr);
                    var g = Marshal.ReadByte(ptr + 1);
                    var b = Marshal.ReadByte(ptr + 2);

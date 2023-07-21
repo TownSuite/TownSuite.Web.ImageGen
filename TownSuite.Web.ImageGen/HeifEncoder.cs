@@ -84,10 +84,10 @@ namespace TownSuite.Web.ImageGen
             {
                 for (int y = 0; y < accessor.Height; y++)
                 {
-                    var src = accessor.GetRowSpan(y);
+                    Span<Rgba32> src = accessor.GetRowSpan(y);
                     for (int x = 0; x < accessor.Width; x++)
                     {
-                        ref var pixel = ref src[x];
+                        ref Rgba32 pixel = ref src[x];
                         if (!(pixel.R == pixel.G && pixel.G == pixel.B))
                         {
                             isGrayscale = false;
@@ -106,12 +106,12 @@ namespace TownSuite.Web.ImageGen
                                                  HeifImage heifImage,
                                                  bool hasTransparency)
         {
-            var grayPlane = heifImage.GetPlane(HeifChannel.Y);
+            HeifPlaneData grayPlane = heifImage.GetPlane(HeifChannel.Y);
             IntPtr grayStartPtr = grayPlane.Scan0;
             int grayPlaneStride = grayPlane.Stride;
             if (hasTransparency)
             {
-                var alphaPlane = heifImage.GetPlane(HeifChannel.Alpha);
+                HeifPlaneData alphaPlane = heifImage.GetPlane(HeifChannel.Alpha);
                 IntPtr alphaStartPtr = grayPlane.Scan0;
                 int alphaPlaneStride = alphaPlane.Stride;
 
@@ -119,10 +119,10 @@ namespace TownSuite.Web.ImageGen
                 {
                     for (int y = 0; y < accessor.Height; y++)
                     {
-                        var src = accessor.GetRowSpan(y);
+                        Span<Rgba32> src = accessor.GetRowSpan(y);
                         for (int x = 0; x < accessor.Width; x++)
                         {
-                            ref var pixel = ref src[x];
+                            ref Rgba32 pixel = ref src[x];
                             SetAlpha(pixel.A, alphaStartPtr + x + (y * alphaPlaneStride));
                             SetGrayscale(pixel.R, grayStartPtr + x + (y * grayPlaneStride));
                         }
@@ -135,10 +135,10 @@ namespace TownSuite.Web.ImageGen
                 {
                     for (int y = 0; y < accessor.Height; y++)
                     {
-                        var src = accessor.GetRowSpan(y);
+                        Span<Rgba32> src = accessor.GetRowSpan(y);
                         for (int x = 0; x < accessor.Width; x++)
                         {
-                            ref var pixel = ref src[x];
+                            ref Rgba32 pixel = ref src[x];
                             SetGrayscale(pixel.R, grayStartPtr + x + (y * grayPlaneStride));
                         }
                     }
@@ -150,7 +150,7 @@ namespace TownSuite.Web.ImageGen
                                            HeifImage heifImage,
                                            bool hasTransparency)
         {
-            var interleavedData = heifImage.GetPlane(HeifChannel.Interleaved);
+            HeifPlaneData interleavedData = heifImage.GetPlane(HeifChannel.Interleaved);
             IntPtr startPtr = interleavedData.Scan0;
             int srcStride = interleavedData.Stride;
   
@@ -158,10 +158,10 @@ namespace TownSuite.Web.ImageGen
             {
                 for (int y = 0; y < accessor.Height; y++)
                 {
-                    var src = accessor.GetRowSpan(y);
+                    Span<Rgba32> src = accessor.GetRowSpan(y);
                     for (int x = 0; x < accessor.Width; x++)
                     {
-                        ref var pixel = ref src[x];
+                        ref Rgba32 pixel = ref src[x];
                         if (hasTransparency)
                         {
                             SetRgba(pixel.R, pixel.G, pixel.B, pixel.A, startPtr + (x * 4) + (y * srcStride));

@@ -16,7 +16,7 @@ public static class Helper
         string contentType;
         string extension;
         using var ms = new MemoryStream();
-        var imageFormat = ImageFormat.GetFormat(image_format);
+        ImageFormat.Format imageFormat = ImageFormat.GetFormat(image_format);
 
         if (imageFormat == ImageFormat.Format.jpeg)
         {
@@ -42,9 +42,9 @@ public static class Helper
         else if (imageFormat == ImageFormat.Format.avif && HeifEncoder.Available())
         {
             using (var context = new HeifContext())
-            using (var heifImage = HeifEncoder.ConvertSharpToHeif(image.CloneAs<Rgba32>()))
+            using (HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(image.CloneAs<Rgba32>()))
             {
-                var encoder = context.GetEncoder(HeifCompressionFormat.Av1);
+                LibHeifSharp.HeifEncoder encoder = context.GetEncoder(HeifCompressionFormat.Av1);
                 encoder.SetLossyQuality(85);
                 context.EncodeImage(heifImage, encoder);
                 context.WriteToStream(ms);
@@ -55,9 +55,9 @@ public static class Helper
         else if (imageFormat == ImageFormat.Format.heic && HeifEncoder.Available())
         {
             using (var context = new HeifContext())
-            using (var heifImage = HeifEncoder.ConvertSharpToHeif(image.CloneAs<Rgba32>()))
+            using (HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(image.CloneAs<Rgba32>()))
             {
-                var encoder = context.GetEncoder(HeifCompressionFormat.Hevc);
+                LibHeifSharp.HeifEncoder encoder = context.GetEncoder(HeifCompressionFormat.Hevc);
                 encoder.SetLossyQuality(85); 
                 context.EncodeImage(heifImage, encoder);
                 context.WriteToStream(ms);
