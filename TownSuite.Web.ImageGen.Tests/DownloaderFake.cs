@@ -1,4 +1,3 @@
-using SixLabors.ImageSharp;
 
 namespace TownSuite.Web.ImageGen.Tests;
 
