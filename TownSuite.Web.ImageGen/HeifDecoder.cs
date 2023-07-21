@@ -36,5 +36,9 @@ namespace TownSuite.Web.ImageGen
             }
             return outImage;
         }
+        public static bool Available()
+        {
+            return LibHeifInfo.HaveDecoder(HeifCompressionFormat.Av1) && LibHeifInfo.HaveDecoder(HeifCompressionFormat.Hevc); 
+        }
     }
 }
