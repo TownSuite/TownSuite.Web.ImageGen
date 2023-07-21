@@ -46,7 +46,8 @@ public class GenerateIdenticonImageRepoTest
         Assert.That(results.metadata.ContentType, Is.EqualTo($"image/{imageformat}"));
         using var ms = new MemoryStream(results.imageData);
         Image newImage; 
-        if (imageformat == "avif" || imageformat == "heic")
+        if (ImageFormat.IsFormat(imageformat, ImageFormat.Format.avif) 
+            || ImageFormat.IsFormat(imageformat, ImageFormat.Format.heic))
         {
             newImage = HeifDecoder.ConvertHeifToSharp(ms);
         }
