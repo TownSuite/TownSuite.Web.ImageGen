@@ -35,9 +35,7 @@
             if (formatStr.Contains("jpg")) formatStr = "jpeg";
             if (formatStr == "heif") formatStr = "heic";
             if (formatStr.Contains("svg")) formatStr = "svg";
-            return (Format)Enum.Parse(typeof(Format), formatStr, true);
-            
+            return (Format)Enum.Parse(typeof(Format), formatStr, true); 
         }
-
     }
 }
