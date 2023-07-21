@@ -17,9 +17,6 @@ public class GenerateIdenticonImageRepoTest
     [Test, TestCaseSource(nameof(ImageFormatCases))]
     public async Task Test1(string imageformat)
     {
-        var origImage = await Image.LoadAsync("assets/facility.jpg");
-        Assert.That(origImage.Height, Is.EqualTo(365));
-        Assert.That(origImage.Width, Is.EqualTo(800));
         var repo = new GenerateIdenticonImageRepo(new Settings()
         {
             HttpCacheControlMaxAgeInMinutes = 5
