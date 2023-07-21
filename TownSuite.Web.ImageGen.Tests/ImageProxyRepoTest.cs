@@ -15,7 +15,7 @@ public class ImageProxyRepoTest
 
     private static string[] ImageFormatCases = new string[] { "jpeg", "png", "gif", "webp", "avif", "heic" };
 
-    [Test, TestCaseSource("ImageFormatCases")]
+    [Test, TestCaseSource(nameof(ImageFormatCases))]
     public async Task Test1(string imageformat)
     {
         var origImage = await Image.LoadAsync("assets/facility.jpg");
@@ -57,7 +57,7 @@ public class ImageProxyRepoTest
         Assert.That(newImage.Width, Is.EqualTo(333));
     }
 
-    [Test, TestCaseSource("ImageFormatCases")]
+    [Test, TestCaseSource(nameof(ImageFormatCases))]
     public async Task ImageMaxResizeCanOnlyBeEqualOrLessThanImageOriginalSizeTest(string imageformat)
     {
         var origImage = await Image.LoadAsync("assets/facility.jpg");

@@ -14,14 +14,13 @@ public class GeneratePlaceHolderImageRepoTest
 
     private static string[] ImageFormatCases = new string[] { "jpeg", "png", "gif", "webp", "avif", "heic" };
     
-    [Test, TestCaseSource("ImageFormatCases")]
+    [Test, TestCaseSource(nameof(ImageFormatCases))]
     public async Task Test1(string imageformat)
     {
         var origImage = await Image.LoadAsync("assets/facility.jpg");
         Assert.That(origImage.Height, Is.EqualTo(365));
         Assert.That(origImage.Width, Is.EqualTo(800));
         
-        var downloader = new DownloaderFake("image/jpeg");
         var repo = new GeneratePlaceholderImageRepo(new Settings()
         {
             HttpCacheControlMaxAgeInMinutes = 5
