@@ -18,7 +18,6 @@
         { 
             return string.Equals(TrimFormat(formatStr), type.ToString(), StringComparison.InvariantCultureIgnoreCase);
         }
-
         public static Format GetFormat(string formatStr)
         {
             try { return (Format)Enum.Parse(typeof(Format), TrimFormat(formatStr), true); }
@@ -35,6 +34,5 @@
             if (formatStr.Contains("svg")) formatStr = "svg";
             return formatStr;
         }
-
     }
 }
