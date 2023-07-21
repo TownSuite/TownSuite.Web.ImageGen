@@ -16,9 +16,9 @@ public static class Helper
         string contentType;
         string extension;
         using var ms = new MemoryStream();
+        var imageFormat = ImageFormat.GetFormat(image_format);
 
-        if (string.Equals(image_format, "jpg", StringComparison.InvariantCultureIgnoreCase)
-            || string.Equals(image_format, "jpeg", StringComparison.InvariantCultureIgnoreCase))
+        if (imageFormat == ImageFormat.Format.jpeg)
         {
             await image.SaveAsync(ms, new JpegEncoder()
             {
@@ -27,19 +27,19 @@ public static class Helper
             extension = "jpeg";
             contentType = "image/jpeg";
         }
-        else if (string.Equals(image_format, "webp", StringComparison.InvariantCultureIgnoreCase))
+        else if (imageFormat == ImageFormat.Format.webp)
         {
             await image.SaveAsync(ms, new WebpEncoder());
             extension = "webp";
             contentType = "image/webp";
         }
-        else if (string.Equals(image_format, "gif", StringComparison.InvariantCultureIgnoreCase))
+        else if (imageFormat == ImageFormat.Format.gif)
         {
             await image.SaveAsync(ms, new GifEncoder());
             extension = "gif";
             contentType = "image/gif";
         }
-        else if (string.Equals(image_format, "avif", StringComparison.InvariantCultureIgnoreCase))
+        else if (imageFormat == ImageFormat.Format.avif && HeifEncoder.Available())
         {
             using (var context = new HeifContext())
             using (var heifImage = HeifEncoder.ConvertSharpToHeif(image.CloneAs<Rgba32>()))
@@ -52,8 +52,7 @@ public static class Helper
             extension = "avif";
             contentType = "image/avif";
         }
-        else if (string.Equals(image_format, "heif", StringComparison.InvariantCultureIgnoreCase)
-            || string.Equals(image_format, "heic", StringComparison.InvariantCultureIgnoreCase))
+        else if (imageFormat == ImageFormat.Format.avif && HeifEncoder.Available())
         {
             using (var context = new HeifContext())
             using (var heifImage = HeifEncoder.ConvertSharpToHeif(image.CloneAs<Rgba32>()))
