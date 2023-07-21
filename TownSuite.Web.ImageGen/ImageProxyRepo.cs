@@ -22,7 +22,7 @@ public class ImageProxyRepo : IImageRepository
 
     public async Task<(byte[] imageData, ImageMetaData metadata)> Get(RequestMetaData request)
     {
-        var proxyRequest = request as ImageProxyRequestMetaData;
+        var proxyRequest = request as ImageProxyRequestMetaData ?? throw new ArgumentException("RequestMetaData is not of type ImageProxyRequestMetaData", nameof(request));
         var result = await _downloader.Download(proxyRequest.ImageSrcUrl);
         await using var downloadStream = result.S;
         if (ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.svg))
