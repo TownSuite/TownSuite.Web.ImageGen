@@ -25,7 +25,7 @@ public class ImageProxyRepo : IImageRepository
         var proxyRequest = request as ImageProxyRequestMetaData;
         var result = await _downloader.Download(proxyRequest.ImageSrcUrl);
         await using var downloadStream = result.S;
-        if (string.Equals(result.ContentType, "image/svg+xml", StringComparison.InvariantCultureIgnoreCase))
+        if (ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.svg))
         {
             using var ms = new MemoryStream();
             await downloadStream.CopyToAsync(ms);
@@ -38,8 +38,8 @@ public class ImageProxyRepo : IImageRepository
         
         Image img;
 
-        if (string.Equals(result.ContentType, "image/avif", StringComparison.InvariantCultureIgnoreCase)
-                       || string.Equals(result.ContentType, "image/heic", StringComparison.InvariantCultureIgnoreCase))
+        if (ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.avif)
+            || ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.heic))
         {
             img = HeifDecoder.ConvertHeifToSharp(downloadStream);
         }
