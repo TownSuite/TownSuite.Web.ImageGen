@@ -52,7 +52,7 @@ public static class Helper
             extension = "avif";
             contentType = "image/avif";
         }
-        else if (imageFormat == ImageFormat.Format.avif && HeifEncoder.Available())
+        else if (imageFormat == ImageFormat.Format.heic && HeifEncoder.Available())
         {
             using (var context = new HeifContext())
             using (var heifImage = HeifEncoder.ConvertSharpToHeif(image.CloneAs<Rgba32>()))
