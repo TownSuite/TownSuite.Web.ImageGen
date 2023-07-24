@@ -1,9 +1,4 @@
-using SixLabors.Fonts;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 namespace TownSuite.Web.ImageGen;
@@ -22,10 +17,10 @@ public class ImageProxyRepo : IImageRepository
 
     public async Task<(byte[] imageData, ImageMetaData metadata)> Get(RequestMetaData request)
     {
-        var proxyRequest = request as ImageProxyRequestMetaData;
+        var proxyRequest = request as ImageProxyRequestMetaData ?? throw new ArgumentException("RequestMetaData is not of type ImageProxyRequestMetaData", nameof(request));
         var result = await _downloader.Download(proxyRequest.ImageSrcUrl);
         await using var downloadStream = result.S;
-        if (string.Equals(result.ContentType, "image/svg+xml", StringComparison.InvariantCultureIgnoreCase))
+        if (ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.svg))
         {
             using var ms = new MemoryStream();
             await downloadStream.CopyToAsync(ms);
@@ -36,7 +31,17 @@ public class ImageProxyRepo : IImageRepository
             return (svg, mdSvg);
         }
         
-        var img = await Image.LoadAsync(downloadStream);
+        Image img;
+
+        if (ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.avif)
+            || ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.heic))
+        {
+            img = HeifDecoder.ConvertHeifToSharp(downloadStream);
+        }
+        else
+        {
+            img = await Image.LoadAsync(downloadStream);
+        }
 
         if (proxyRequest.WidthChangeRequested && proxyRequest.HeightChangeRequested
             && ResizeRequestIsSmallerOrEqualToOrignalSize(proxyRequest, img))

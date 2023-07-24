@@ -1,8 +1,10 @@
+using LibHeifSharp;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace TownSuite.Web.ImageGen;
 
@@ -14,9 +16,9 @@ public static class Helper
         string contentType;
         string extension;
         using var ms = new MemoryStream();
+        ImageFormat.Format imageFormat = ImageFormat.GetFormat(image_format);
 
-        if (string.Equals(image_format, "jpg", StringComparison.InvariantCultureIgnoreCase)
-            || string.Equals(image_format, "jpeg", StringComparison.InvariantCultureIgnoreCase))
+        if (imageFormat == ImageFormat.Format.jpeg)
         {
             await image.SaveAsync(ms, new JpegEncoder()
             {
@@ -25,17 +27,43 @@ public static class Helper
             extension = "jpeg";
             contentType = "image/jpeg";
         }
-        else if (string.Equals(image_format, "webp", StringComparison.InvariantCultureIgnoreCase))
+        else if (imageFormat == ImageFormat.Format.webp)
         {
             await image.SaveAsync(ms, new WebpEncoder());
             extension = "webp";
             contentType = "image/webp";
         }
-        else if (string.Equals(image_format, "gif", StringComparison.InvariantCultureIgnoreCase))
+        else if (imageFormat == ImageFormat.Format.gif)
         {
             await image.SaveAsync(ms, new GifEncoder());
             extension = "gif";
             contentType = "image/gif";
+        }
+        else if (imageFormat == ImageFormat.Format.avif && HeifEncoder.Available())
+        {
+            using (var context = new HeifContext())
+            using (HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(image.CloneAs<Rgba32>()))
+            {
+                LibHeifSharp.HeifEncoder encoder = context.GetEncoder(HeifCompressionFormat.Av1);
+                encoder.SetLossyQuality(85);
+                context.EncodeImage(heifImage, encoder);
+                context.WriteToStream(ms);
+            }
+            extension = "avif";
+            contentType = "image/avif";
+        }
+        else if (imageFormat == ImageFormat.Format.heic && HeifEncoder.Available())
+        {
+            using (var context = new HeifContext())
+            using (HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(image.CloneAs<Rgba32>()))
+            {
+                LibHeifSharp.HeifEncoder encoder = context.GetEncoder(HeifCompressionFormat.Hevc);
+                encoder.SetLossyQuality(85); 
+                context.EncodeImage(heifImage, encoder);
+                context.WriteToStream(ms);
+            }
+            extension = "heic";
+            contentType = "image/heic";
         }
         else
         {

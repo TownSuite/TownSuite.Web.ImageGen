@@ -1,6 +1,4 @@
-using System.Net;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Primitives;
 using SixLabors.ImageSharp;
 
@@ -14,16 +12,11 @@ public class GenerateIdenticonImageRepoTest
     {
     }
 
-    private static string[] ImageFormatCases = new string[] { "jpeg", "png", "gif", "webp" };
-    
-    [Test, TestCaseSource("ImageFormatCases")]
+    private static string[] ImageFormatCases = new string[] { "jpeg", "png", "gif", "webp", "avif", "heic" };
+
+    [Test, TestCaseSource(nameof(ImageFormatCases))]
     public async Task Test1(string imageformat)
     {
-        var origImage = await Image.LoadAsync("assets/facility.jpg");
-        Assert.That(origImage.Height, Is.EqualTo(365));
-        Assert.That(origImage.Width, Is.EqualTo(800));
-        
-        var downloader = new DownloaderFake("image/jpeg");
         var repo = new GenerateIdenticonImageRepo(new Settings()
         {
             HttpCacheControlMaxAgeInMinutes = 5
@@ -42,10 +35,18 @@ public class GenerateIdenticonImageRepoTest
             "/avatar/hello",
             "test_output");
         var results = await repo.Get(request);
-
-        using var ms = new MemoryStream(results.imageData);
-        var newImage = await Image.LoadAsync(ms);
         Assert.That(results.metadata.ContentType, Is.EqualTo($"image/{imageformat}"));
+        using var ms = new MemoryStream(results.imageData);
+        Image newImage; 
+        if (ImageFormat.IsFormat(imageformat, ImageFormat.Format.avif) 
+            || ImageFormat.IsFormat(imageformat, ImageFormat.Format.heic))
+        {
+            newImage = HeifDecoder.ConvertHeifToSharp(ms);
+        }
+        else
+        {
+            newImage = await Image.LoadAsync(ms);
+        }
         Assert.That(newImage.Height, Is.EqualTo(777));
         Assert.That(newImage.Width, Is.EqualTo(777));
     }
