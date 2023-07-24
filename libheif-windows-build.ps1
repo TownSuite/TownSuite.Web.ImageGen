@@ -13,9 +13,9 @@ else {
 
 git clone -q --depth 1 "https://github.com/microsoft/vcpkg" libheif-build
 
-Invoke-Expression -Command ".\libheif-build\bootstrap-vcpkg.bat"
+Start-Process -FilePath ".\libheif-build\bootstrap-vcpkg.bat" -ArgumentList "-disableMetrics" -Wait -NoNewWindow
 
-.\libheif-build\vcpkg install aom:x64-windows libde265:x64-windows x265:x64-windows libheif:x64-windows
+Start-Process -FilePath ".\libheif-build\vcpkg.exe" -ArgumentList "install aom:x64-windows libde265:x64-windows x265:x64-windows libheif:x64-windows" -Wait -NoNewWindow 
 
 Rename-Item -Path ".\libheif-build\installed\x64-windows\bin\heif.dll" -NewName "libheif.dll"
 
