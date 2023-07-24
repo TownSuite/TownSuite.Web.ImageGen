@@ -16,9 +16,12 @@ Supported image formats are:
 2. jpg
 3. gif
 4. webp
+5. avif *
+6. heic *
 
 The default image format is png.
-
+  
+  \*  [Libheif-sharp](https://github.com/0xC0000054/libheif-sharp) dependencies must be present. See **Windows Development Setup**.
 
 # Appsettings.json
 
@@ -97,5 +100,23 @@ Request a jpeg and resize to 800x400. Specifying just a width or height will kee
 ```
 /proxy/{url of the source image}?imgformat=jpeg&w=800&h=400
 ```
+
+# Windows Development Setup 
+Libheif-sharp requires some DLL files to function on Windows. The DLLs are required to use AVIF and HEIC functionality. Instructions for building the DLLs [here](https://0xc0000054.github.io/libheif-sharp/libheif_windows_build_vcpkg.html).
+
+
+Place the generated DLLs in the following two folders:
+
+```~\TownSuite.Web.ImageGen\bin\Debug\net6.0``` 
+
+```~\TownSuite.Web.ImageGen.Tests\bin\Debug\net6.0```
+
+### ***Important*** You need to install ***"Desktop devlopment with C++"*** in Visual Studio to build these DLLs. (~4 GB)
+
+![image](https://github.com/TownSuite/TownSuite.Web.ImageGen/assets/37007232/f2183a97-b05b-45e8-bd3a-4085d2bf9ed8)
+
+## Automated Windows Setup
+The powershell script ```libheif-windows-build.ps1``` automates this procedure. This script still requires **Desktop devlopment with C++** be installed through Visual Studio.
+
 
 
