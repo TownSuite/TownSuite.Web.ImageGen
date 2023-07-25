@@ -1,3 +1,4 @@
+using SixLabors.ImageSharp;
 
 namespace TownSuite.Web.ImageGen.Tests;
 
@@ -8,7 +9,7 @@ public class HeifDecodeTest
      TestCase("heic", 700, 476)]
     public async Task CanConvertHeifToSharp(string imageformat, int width, int height)
     {
-        var image = HeifDecoder.ConvertHeifToSharp(new MemoryStream(await File.ReadAllBytesAsync($"assets/{imageformat}_test.{imageformat}")));
+        Image image = HeifDecoder.ConvertHeifToSharp(new MemoryStream(await File.ReadAllBytesAsync($"assets/{imageformat}_test.{imageformat}")));
 
         Assert.That(image.Height, Is.EqualTo(height));
         Assert.That(image.Width, Is.EqualTo(width));
