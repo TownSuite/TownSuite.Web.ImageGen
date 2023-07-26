@@ -20,7 +20,6 @@ public class HeifEncodeTest
         Assert.That(origImage.Height, Is.EqualTo(height));
         Assert.That(origImage.Width, Is.EqualTo(width));
 
-        using var context = new HeifContext();
         using HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(origImage.CloneAs<Rgba32>());
 
         Assert.That(heifImage.Height, Is.EqualTo(height));
