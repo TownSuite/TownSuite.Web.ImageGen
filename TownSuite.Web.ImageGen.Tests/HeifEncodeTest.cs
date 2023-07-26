@@ -52,9 +52,9 @@ public class HeifEncodeTest
         Image<Rgba32> origImage = Image.Load($"assets/{imageName}").CloneAs<Rgba32>();
 
         using var context = new HeifContext();
-        HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(origImage);
-        LibHeifSharp.HeifEncoder encoder = context.GetEncoder(HeifCompressionFormat.Hevc);
-        encoder.SetLossyQuality(90); // Quality higher to avoid artifacts
+        using HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(origImage);
+        using LibHeifSharp.HeifEncoder encoder = context.GetEncoder(HeifCompressionFormat.Hevc);
+        encoder.SetLossyQuality(85);
         context.EncodeImage(heifImage, encoder);
 
         var origPixel = origImage[0, 0];
@@ -83,9 +83,9 @@ public class HeifEncodeTest
         Image<Rgba32> origImage = Image.Load($"assets/{imageName}").CloneAs<Rgba32>();
 
         using var context = new HeifContext();
-        HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(origImage);
-        LibHeifSharp.HeifEncoder encoder = context.GetEncoder(HeifCompressionFormat.Hevc);
-        encoder.SetLossyQuality(90); // Quality higher to avoid artifacts
+        using HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(origImage);
+        using LibHeifSharp.HeifEncoder encoder = context.GetEncoder(HeifCompressionFormat.Hevc);
+        encoder.SetLossyQuality(85);
         context.EncodeImage(heifImage, encoder);
 
         var origPixel = origImage[0, 0];
