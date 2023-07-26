@@ -1,4 +1,5 @@
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace TownSuite.Web.ImageGen.Tests;
 
@@ -13,5 +14,16 @@ public class HeifDecodeTest
 
         Assert.That(image.Height, Is.EqualTo(height));
         Assert.That(image.Width, Is.EqualTo(width));
+    }
+
+    [Test]
+    public async Task ShouldCreateBlankImageOnEmptyStream()
+    { 
+        Image<Rgba32> image = HeifDecoder.ConvertHeifToSharp(new MemoryStream());
+
+        Assert.That(image.Height, Is.EqualTo(1));
+        Assert.That(image.Width, Is.EqualTo(1));
+
+        Assert.That(image[0, 0].R, Is.EqualTo(0));
     }
 }
