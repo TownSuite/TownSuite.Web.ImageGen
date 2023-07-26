@@ -32,7 +32,7 @@ public class HeifEncodeTest
      TestCase("grayscale-alpha.png",    true,  true),
      TestCase("color-alpha.png",        false, true),
      TestCase("facility.jpg",           false, false)]
-    public async Task CanAnalyzeImage(string imageName, bool expectGrayscale, bool expectTransparency)
+    public async Task AnalyzeGrayscaleAndTransparency(string imageName, bool expectGrayscale, bool expectTransparency)
     {
         var origImage = await Image.LoadAsync($"assets/{imageName}");
         (bool isGrayscale, bool hasTransparency) = HeifEncoder.AnalyzeImage(origImage.CloneAs<Rgba32>());
