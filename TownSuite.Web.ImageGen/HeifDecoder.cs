@@ -9,6 +9,10 @@ namespace TownSuite.Web.ImageGen
     {
         public static Image<Rgba32> ConvertHeifToSharp(Stream stream)
         {
+            if (stream == null || !stream.CanRead)
+            {
+                return new Image<Rgba32>(1, 1);
+            }
             using var heifContext = new HeifContext(stream);
             using HeifImageHandle srcImageHandle = heifContext.GetPrimaryImageHandle();
             using HeifImage srcImage = srcImageHandle.Decode(HeifColorspace.Rgb, HeifChroma.InterleavedRgba32);
