@@ -10,8 +10,8 @@ public class HeifEncodeTest
 {
     [TestCase("color-no-alpha.png",     800, 800),
      TestCase("grayscale-no-alpha.png", 800, 800),
-     TestCase("grayscale-alpha.png",    980, 981),
-     TestCase("color-alpha.png",        961, 611),
+     TestCase("grayscale-alpha.png",    400, 400),
+     TestCase("color-alpha.png",        400, 400),
      TestCase("facility.jpg",           800, 365)]
     public async Task CanConvertSharpToHeif(string imageName, int width, int height)
     {
@@ -19,10 +19,11 @@ public class HeifEncodeTest
         Assert.That(origImage.Height, Is.EqualTo(height));
         Assert.That(origImage.Width, Is.EqualTo(width));
 
-        HeifImage image = HeifEncoder.ConvertSharpToHeif(origImage.CloneAs<Rgba32>());
+        using var context = new HeifContext();
+        using HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(origImage.CloneAs<Rgba32>());
 
-        Assert.That(image.Height, Is.EqualTo(height));
-        Assert.That(image.Width, Is.EqualTo(width));
+        Assert.That(heifImage.Height, Is.EqualTo(height));
+        Assert.That(heifImage.Width, Is.EqualTo(width));
     }
 
     [TestCase("color-no-alpha.png",     false, false),
