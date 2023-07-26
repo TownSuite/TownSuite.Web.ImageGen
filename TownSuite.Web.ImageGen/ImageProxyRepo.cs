@@ -1,4 +1,5 @@
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 namespace TownSuite.Web.ImageGen;
@@ -36,7 +37,14 @@ public class ImageProxyRepo : IImageRepository
         if (ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.avif)
             || ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.heic))
         {
-            img = HeifDecoder.ConvertHeifToSharp(downloadStream);
+            if (HeifDecoder.Available())
+            {
+                img = HeifDecoder.ConvertHeifToSharp(downloadStream);
+            }
+            else
+            {
+                img = new Image<Rgba32>(1, 1);
+            }
         }
         else
         {
