@@ -9,7 +9,7 @@ namespace TownSuite.Web.ImageGen
     {
         public static Image<Rgba32> ConvertHeifToSharp(Stream stream)
         {
-            if (stream == null || !stream.CanRead)
+            if (stream == null || !stream.CanRead || stream.Length < 1)
             {
                 return new Image<Rgba32>(1, 1);
             }
