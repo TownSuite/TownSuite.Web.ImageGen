@@ -31,20 +31,13 @@ public class ImageProxyRepo : IImageRepository
                 "image/svg+xml", request.Path);
             return (svg, mdSvg);
         }
-        
+
         Image img;
 
         if (ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.avif)
             || ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.heic))
         {
-            if (HeifDecoder.Available())
-            {
-                img = HeifDecoder.ConvertHeifToSharp(downloadStream);
-            }
-            else
-            {
-                img = new Image<Rgba32>(1, 1);
-            }
+            img = HeifDecoder.ConvertHeifToSharp(downloadStream);
         }
         else
         {
