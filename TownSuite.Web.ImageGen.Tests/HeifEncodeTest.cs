@@ -47,7 +47,7 @@ public class HeifEncodeTest
 
     [TestCase("color-no-alpha.png"),
      TestCase("color-alpha.png")]
-    public async Task ColorPixelsArentModifed(string imageName)
+    public void ColorPixelsArentModifed(string imageName)
     {
         Image<Rgba32> origImage = Image.Load($"assets/{imageName}").CloneAs<Rgba32>();
 
@@ -78,7 +78,7 @@ public class HeifEncodeTest
 
     [TestCase("grayscale-no-alpha.png"),
     TestCase("grayscale-alpha.png")]
-    public async Task GrayscalePixelsArentModifed(string imageName)
+    public void GrayscalePixelsArentModifed(string imageName)
     {
         Image<Rgba32> origImage = Image.Load($"assets/{imageName}").CloneAs<Rgba32>();
 
