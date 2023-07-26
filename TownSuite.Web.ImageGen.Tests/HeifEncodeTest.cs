@@ -38,8 +38,11 @@ public class HeifEncodeTest
     {
         var origImage = await Image.LoadAsync($"assets/{imageName}");
         (bool isGrayscale, bool hasTransparency) = HeifEncoder.AnalyzeImage(origImage.CloneAs<Rgba32>());
-        Assert.That(isGrayscale, Is.EqualTo(expectGrayscale));
-        Assert.That(hasTransparency, Is.EqualTo(expectTransparency));
+        Assert.Multiple(() =>
+        {
+            Assert.That(isGrayscale, Is.EqualTo(expectGrayscale), $" Photo {imageName} {(expectGrayscale ? "Expects" : "Doesn't expect")} Grayscale");
+            Assert.That(hasTransparency, Is.EqualTo(expectTransparency), $" Photo {imageName} {(expectTransparency ? "Expects" : "Doesn't expect")} Transparency");
+        });
     }
 
     [TestCase("color-no-alpha.png"),
@@ -65,10 +68,12 @@ public class HeifEncodeTest
         var r = Marshal.ReadByte(grayStartPtr);
         var g = Marshal.ReadByte(grayStartPtr + 1);
         var b = Marshal.ReadByte(grayStartPtr + 2);
-       
-        Assert.That(r, Is.InRange(origR - 1, origR + 1));
-        Assert.That(g, Is.InRange(origG - 1, origG + 1));
-        Assert.That(b, Is.InRange(origB - 1, origB + 1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(r, Is.InRange(origR - allowedPixelUncertainty, origR + allowedPixelUncertainty), "R out of allowedPixelUncertainty range");
+            Assert.That(g, Is.InRange(origG - allowedPixelUncertainty, origG + allowedPixelUncertainty), "G out of allowedPixelUncertainty range");
+            Assert.That(b, Is.InRange(origB - allowedPixelUncertainty, origB + allowedPixelUncertainty), "B out of allowedPixelUncertainty range");
+        });
     }
 
     [TestCase("grayscale-no-alpha.png"),
@@ -91,6 +96,6 @@ public class HeifEncodeTest
 
         var r = Marshal.ReadByte(grayStartPtr);
 
-        Assert.That(r, Is.InRange(origR - 1, origR + 1));
+        Assert.That(r, Is.InRange(origR - allowedPixelUncertainty, origR + allowedPixelUncertainty), "Grayscale modified outsize of allowedPixelUncertainty range");
     }
 }
