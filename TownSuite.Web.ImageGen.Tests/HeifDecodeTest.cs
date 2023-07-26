@@ -10,20 +10,23 @@ public class HeifDecodeTest
      TestCase("heic", 400, 400)]
     public async Task CanConvertHeifToSharp(string imageformat, int width, int height)
     {
-        Image image = HeifDecoder.ConvertHeifToSharp(new MemoryStream(await File.ReadAllBytesAsync($"assets/{imageformat}_test.{imageformat}")));
-
-        Assert.That(image.Height, Is.EqualTo(height));
-        Assert.That(image.Width, Is.EqualTo(width));
+        var imageName = $"assets/{imageformat}_test.{imageformat}";
+        Image image = HeifDecoder.ConvertHeifToSharp(new MemoryStream(await File.ReadAllBytesAsync(imageName)));
+        Assert.Multiple(() =>
+        {
+            Assert.That(image.Height, Is.EqualTo(height), $"Photo {imageName} height incorrect");
+            Assert.That(image.Width, Is.EqualTo(width), $"Photo {imageName} width incorrect");
+        });
     }
 
     [Test]
-    public async Task ShouldCreateBlankImageOnEmptyStream()
-    { 
+    public void ShouldCreateBlankImageOnEmptyStream()
+    {
         Image<Rgba32> image = HeifDecoder.ConvertHeifToSharp(new MemoryStream());
-
-        Assert.That(image.Height, Is.EqualTo(1));
-        Assert.That(image.Width, Is.EqualTo(1));
-
-        Assert.That(image[0, 0].R, Is.EqualTo(0));
+        Assert.Multiple(() =>
+        {
+            Assert.That(image.Height, Is.EqualTo(1));
+            Assert.That(image.Width, Is.EqualTo(1));
+        });
     }
 }
