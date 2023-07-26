@@ -1,5 +1,4 @@
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 namespace TownSuite.Web.ImageGen;
@@ -31,7 +30,7 @@ public class ImageProxyRepo : IImageRepository
                 "image/svg+xml", request.Path);
             return (svg, mdSvg);
         }
-
+        
         Image img;
 
         if (ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.avif)
