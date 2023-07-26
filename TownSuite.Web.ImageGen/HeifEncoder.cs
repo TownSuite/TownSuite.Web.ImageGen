@@ -88,13 +88,17 @@ namespace TownSuite.Web.ImageGen
                     for (int x = 0; x < accessor.Width; x++)
                     {
                         ref Rgba32 pixel = ref src[x];
-                        if (!(pixel.R == pixel.G && pixel.G == pixel.B))
+                        if (isGrayscale && !(pixel.R == pixel.G && pixel.G == pixel.B))
                         {
                             isGrayscale = false;
                         }
-                        if (pixel.A < 255)
+                        if (!hasTransparency && pixel.A < 255)
                         {
                             hasTransparency = true;
+                        }
+                        if (!isGrayscale && hasTransparency)
+                        {
+                            return;
                         }
                     }
                 }
