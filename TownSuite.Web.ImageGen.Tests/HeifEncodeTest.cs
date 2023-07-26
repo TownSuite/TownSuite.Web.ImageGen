@@ -9,7 +9,7 @@ namespace TownSuite.Web.ImageGen.Tests;
 [TestFixture]
 public class HeifEncodeTest
 {
-    [TestCase("color-no-alpha.png",     800, 800),
+    const int allowedPixelUncertainty = 1; // Encoded image RGB values may differ from original by up to this amount (0-255)
      TestCase("grayscale-no-alpha.png", 800, 800),
      TestCase("grayscale-alpha.png",    400, 400),
      TestCase("color-alpha.png",        400, 400),
