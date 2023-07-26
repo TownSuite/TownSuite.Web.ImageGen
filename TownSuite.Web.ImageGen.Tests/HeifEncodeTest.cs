@@ -10,20 +10,23 @@ namespace TownSuite.Web.ImageGen.Tests;
 public class HeifEncodeTest
 {
     const int allowedPixelUncertainty = 1; // Encoded image RGB values may differ from original by up to this amount (0-255)
-     TestCase("grayscale-no-alpha.png", 800, 800),
-     TestCase("grayscale-alpha.png",    400, 400),
-     TestCase("color-alpha.png",        400, 400),
-     TestCase("facility.jpg",           800, 365)]
-    public async Task CanConvertSharpToHeif(string imageName, int width, int height)
+
+    [TestCase("color-no-alpha.png"),
+     TestCase("grayscale-no-alpha.png"),
+     TestCase("grayscale-alpha.png"),
+     TestCase("color-alpha.png"),
+     TestCase("facility.jpg")]
+    public async Task CanConvertSharpToHeif(string imageName)
     {
         var origImage = await Image.LoadAsync($"assets/{imageName}");
-        Assert.That(origImage.Height, Is.EqualTo(height));
-        Assert.That(origImage.Width, Is.EqualTo(width));
-
+        var width = origImage.Width;
+        var height = origImage.Height;
         using HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(origImage.CloneAs<Rgba32>());
-
-        Assert.That(heifImage.Height, Is.EqualTo(height));
-        Assert.That(heifImage.Width, Is.EqualTo(width));
+        Assert.Multiple(() =>
+        {
+            Assert.That(heifImage.Height, Is.EqualTo(height), "Converted image height incorrect");
+            Assert.That(heifImage.Width, Is.EqualTo(width), "Converted image width incorrect");
+        });
     }
 
     [TestCase("color-no-alpha.png",     false, false),
