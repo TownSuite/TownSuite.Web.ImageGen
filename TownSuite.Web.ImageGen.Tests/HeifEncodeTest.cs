@@ -24,8 +24,8 @@ public class HeifEncodeTest
         using HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(origImage.CloneAs<Rgba32>());
         Assert.Multiple(() =>
         {
-            Assert.That(heifImage.Height, Is.EqualTo(height), "Converted image height incorrect");
-            Assert.That(heifImage.Width, Is.EqualTo(width), "Converted image width incorrect");
+            Assert.That(heifImage.Height, Is.EqualTo(height), $"Photo {imageName} height incorrect");
+            Assert.That(heifImage.Width, Is.EqualTo(width), $"Photo {imageName} width incorrect");
         });
     }
 
