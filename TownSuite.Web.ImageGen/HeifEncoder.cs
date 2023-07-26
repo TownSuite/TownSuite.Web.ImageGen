@@ -115,45 +115,37 @@ namespace TownSuite.Web.ImageGen
                 IntPtr alphaStartPtr = grayPlane.Scan0;
                 int alphaPlaneStride = alphaPlane.Stride;
 
-                image.ProcessPixelRows(accessor =>
+                ProcessPixelRows(image, (pixel, x, y) =>
                 {
-                    for (int y = 0; y < accessor.Height; y++)
-                    {
-                        Span<Rgba32> src = accessor.GetRowSpan(y);
-                        for (int x = 0; x < accessor.Width; x++)
-                        {
-                            ref Rgba32 pixel = ref src[x];
-                            SetAlpha(pixel.A, alphaStartPtr + x + (y * alphaPlaneStride));
-                            SetGrayscale(pixel.R, grayStartPtr + x + (y * grayPlaneStride));
-                        }
-                    }
+                    SetAlpha(pixel.A, alphaStartPtr + x + (y * alphaPlaneStride));
+                    SetGrayscale(pixel.R, grayStartPtr + x + (y * grayPlaneStride));
                 });
             }
             else
             {
-                image.ProcessPixelRows(accessor =>
-                {
-                    for (int y = 0; y < accessor.Height; y++)
-                    {
-                        Span<Rgba32> src = accessor.GetRowSpan(y);
-                        for (int x = 0; x < accessor.Width; x++)
-                        {
-                            ref Rgba32 pixel = ref src[x];
-                            SetGrayscale(pixel.R, grayStartPtr + x + (y * grayPlaneStride));
-                        }
-                    }
-                });
+                ProcessPixelRows(image, (pixel, x, y) => SetGrayscale(pixel.R, grayStartPtr + x + (y * grayPlaneStride)));
             }
         }
 
-        private static void CopyRgb(Image<Rgba32> image,
-                                           HeifImage heifImage,
-                                           bool hasTransparency)
+        private static void CopyRgb(Image<Rgba32> image, HeifImage heifImage, bool hasTransparency)
         {
             HeifPlaneData interleavedData = heifImage.GetPlane(HeifChannel.Interleaved);
             IntPtr startPtr = interleavedData.Scan0;
             int srcStride = interleavedData.Stride;
-  
+
+            if (hasTransparency)
+            {
+                ProcessPixelRows(image, (pixel, x, y) =>
+                    SetRgba(pixel.R, pixel.G, pixel.B, pixel.A, startPtr + (x * 4) + (y * srcStride)));
+            }
+            else
+            {
+                ProcessPixelRows(image, (pixel, x, y) =>
+                    SetRgb(pixel.R, pixel.G, pixel.B, startPtr + (x * 3) + (y * srcStride)));
+            }
+        }
+        private static void ProcessPixelRows(Image<Rgba32> image, Action<Rgba32, int, int> action)
+        {
             image.ProcessPixelRows(accessor =>
             {
                 for (int y = 0; y < accessor.Height; y++)
@@ -162,13 +154,7 @@ namespace TownSuite.Web.ImageGen
                     for (int x = 0; x < accessor.Width; x++)
                     {
                         ref Rgba32 pixel = ref src[x];
-                        if (hasTransparency)
-                        {
-                            SetRgba(pixel.R, pixel.G, pixel.B, pixel.A, startPtr + (x * 4) + (y * srcStride));
-                        } else
-                        {
-                            SetRgb(pixel.R, pixel.G, pixel.B, startPtr + (x * 3) + (y * srcStride));
-                        }
+                        action(pixel, x, y);
                     }
                 }
             });
