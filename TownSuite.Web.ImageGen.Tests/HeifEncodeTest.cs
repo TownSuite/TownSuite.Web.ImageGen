@@ -70,9 +70,9 @@ public class HeifEncodeTest
         var b = Marshal.ReadByte(grayStartPtr + 2);
         Assert.Multiple(() =>
         {
-            Assert.That(r, Is.InRange(origR - allowedPixelUncertainty, origR + allowedPixelUncertainty), "R out of allowedPixelUncertainty range");
-            Assert.That(g, Is.InRange(origG - allowedPixelUncertainty, origG + allowedPixelUncertainty), "G out of allowedPixelUncertainty range");
-            Assert.That(b, Is.InRange(origB - allowedPixelUncertainty, origB + allowedPixelUncertainty), "B out of allowedPixelUncertainty range");
+            Assert.That(r, Is.InRange(origR - allowedPixelUncertainty, origR + allowedPixelUncertainty));
+            Assert.That(g, Is.InRange(origG - allowedPixelUncertainty, origG + allowedPixelUncertainty));
+            Assert.That(b, Is.InRange(origB - allowedPixelUncertainty, origB + allowedPixelUncertainty));
         });
     }
 
@@ -96,6 +96,6 @@ public class HeifEncodeTest
 
         var r = Marshal.ReadByte(grayStartPtr);
 
-        Assert.That(r, Is.InRange(origR - allowedPixelUncertainty, origR + allowedPixelUncertainty), "Grayscale modified outsize of allowedPixelUncertainty range");
+        Assert.That(r, Is.InRange(origR - allowedPixelUncertainty, origR + allowedPixelUncertainty));
     }
 }
