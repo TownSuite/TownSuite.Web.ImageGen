@@ -18,10 +18,10 @@ public class HeifEncodeTest
      TestCase("facility.jpg")]
     public async Task CanConvertSharpToHeif(string imageName)
     {
-        var origImage = await Image.LoadAsync($"assets/{imageName}");
+        var origImage = await Image.LoadAsync<Rgba32>($"assets/{imageName}");
         var width = origImage.Width;
         var height = origImage.Height;
-        using HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(origImage.CloneAs<Rgba32>());
+        using HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(origImage);
         Assert.Multiple(() =>
         {
             Assert.That(heifImage.Height, Is.EqualTo(height), $"Photo {imageName} height incorrect");
@@ -36,8 +36,8 @@ public class HeifEncodeTest
      TestCase("facility.jpg",           false, false)]
     public async Task AnalyzeGrayscaleAndTransparency(string imageName, bool expectGrayscale, bool expectTransparency)
     {
-        var origImage = await Image.LoadAsync($"assets/{imageName}");
-        (bool isGrayscale, bool hasTransparency) = HeifEncoder.AnalyzeImage(origImage.CloneAs<Rgba32>());
+        var origImage = await Image.LoadAsync<Rgba32>($"assets/{imageName}");
+        (bool isGrayscale, bool hasTransparency) = HeifEncoder.AnalyzeImage(origImage);
         Assert.Multiple(() =>
         {
             Assert.That(isGrayscale, Is.EqualTo(expectGrayscale), $" Photo {imageName} {(expectGrayscale ? "Expects" : "Doesn't expect")} Grayscale");
@@ -49,7 +49,7 @@ public class HeifEncodeTest
      TestCase("color-alpha.png")]
     public void ColorPixelsArentModifed(string imageName)
     {
-        Image<Rgba32> origImage = Image.Load($"assets/{imageName}").CloneAs<Rgba32>();
+        Image<Rgba32> origImage = Image.Load<Rgba32>($"assets/{imageName}");
 
         using var context = new HeifContext();
         using HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(origImage);
@@ -80,7 +80,7 @@ public class HeifEncodeTest
     TestCase("grayscale-alpha.png")]
     public void GrayscalePixelsArentModifed(string imageName)
     {
-        Image<Rgba32> origImage = Image.Load($"assets/{imageName}").CloneAs<Rgba32>();
+        Image<Rgba32> origImage = Image.Load<Rgba32>($"assets/{imageName}");
 
         using var context = new HeifContext();
         using HeifImage heifImage = HeifEncoder.ConvertSharpToHeif(origImage);
