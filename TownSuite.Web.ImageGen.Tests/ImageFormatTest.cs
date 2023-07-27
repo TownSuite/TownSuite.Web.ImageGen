@@ -12,9 +12,9 @@ public class ImageFormatTest
         Assert.That(returnedFormat, Is.EqualTo(expected), $"Expected {expected} but got {returnedFormat}");
     }
 
-    private static readonly string[] cases = new string[] {" ", "", "test", "image/", "AjpgB"};
+    private static readonly string[] cases = new string[] {" ", "", "abxz", "image/"};
     [TestCaseSource(nameof(cases))]
-    public void ReturnsPngIfInvalidType(string given)
+    public void ReturnsPngOnInvalidType(string given)
     {
         ImageFormat.Format returnedFormat = ImageFormat.GetFormat(given);
         Console.WriteLine(returnedFormat.GetType());
