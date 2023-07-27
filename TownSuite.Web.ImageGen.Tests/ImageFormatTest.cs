@@ -4,8 +4,10 @@ namespace TownSuite.Web.ImageGen.Tests;
 [TestFixture]
 public class ImageFormatTest
 {
-    [TestCase("avif" ,ImageFormat.Format.avif),
-     TestCase("image/jpg", ImageFormat.Format.jpeg)]
+    [TestCase("png" ,ImageFormat.Format.png),
+     TestCase("image/jpg", ImageFormat.Format.jpeg),
+     TestCase("svg+xml", ImageFormat.Format.svg),
+     TestCase("   heif ", ImageFormat.Format.heic)]
     public void ReturnsExpectedFormat(string given, ImageFormat.Format expected)
     {
         ImageFormat.Format returnedFormat = ImageFormat.GetFormat(given);
@@ -17,8 +19,6 @@ public class ImageFormatTest
     public void ReturnsPngOnInvalidType(string given)
     {
         ImageFormat.Format returnedFormat = ImageFormat.GetFormat(given);
-        Console.WriteLine(returnedFormat.GetType());
-        
         Assert.That(returnedFormat, Is.EqualTo(ImageFormat.Format.png), $"Expected {ImageFormat.Format.png} but got {returnedFormat}");
     }
 }
