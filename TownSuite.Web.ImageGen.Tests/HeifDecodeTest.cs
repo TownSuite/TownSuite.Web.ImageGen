@@ -6,8 +6,8 @@ namespace TownSuite.Web.ImageGen.Tests;
 [TestFixture]
 public class HeifDecodeTest
 {
-    [TestCase("avif" ,400, 400),
-     TestCase("heic", 400, 400)]
+    [TestCase("avif", 200, 200),
+     TestCase("heic", 200, 200)]
     public async Task CanConvertHeifToSharp(string imageformat, int width, int height)
     {
         var imageName = $"assets/{imageformat}_test.{imageformat}";
