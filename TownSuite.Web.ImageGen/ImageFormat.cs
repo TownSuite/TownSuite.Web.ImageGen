@@ -26,6 +26,7 @@
         private static string ParseFormatString(string formatStr)
         {
             formatStr = formatStr.Trim();
+            if (formatStr.All(c => !char.IsLetter(c))) return "png";
             if (formatStr.StartsWith("image/")) formatStr = formatStr[6..];
             if (formatStr.EndsWith("+xml")) formatStr = formatStr[..4];
             if (formatStr.Contains("jpg")) formatStr = "jpeg";
