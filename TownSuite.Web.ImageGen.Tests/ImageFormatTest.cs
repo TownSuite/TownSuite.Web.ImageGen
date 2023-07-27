@@ -21,5 +21,4 @@ public class ImageFormatTest
         
         Assert.That(returnedFormat, Is.EqualTo(ImageFormat.Format.png), $"Expected {ImageFormat.Format.png} but got {returnedFormat}");
     }
-    
 }
