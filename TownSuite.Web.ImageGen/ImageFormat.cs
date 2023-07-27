@@ -28,7 +28,7 @@
             formatStr = formatStr.Trim();
             if (formatStr.All(c => !char.IsLetter(c))) return "png";
             if (formatStr.StartsWith("image/")) formatStr = formatStr[6..];
-            if (formatStr.EndsWith("+xml")) formatStr = formatStr[..4];
+            if (formatStr.EndsWith("xml")) formatStr = formatStr[..3];
             if (formatStr.Contains("jpg")) formatStr = "jpeg";
             if (formatStr.Contains("heif")) formatStr = "heic";
             if (formatStr.Contains("svg")) formatStr = "svg";
