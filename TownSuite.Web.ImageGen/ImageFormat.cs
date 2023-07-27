@@ -27,6 +27,7 @@
         {
             formatStr = formatStr.Trim();
             if (formatStr.All(c => !char.IsLetter(c))) return "png";
+            if (formatStr.StartsWith('.')) formatStr = formatStr[1..];
             if (formatStr.StartsWith("image/")) formatStr = formatStr[6..];
             if (formatStr.EndsWith("xml")) formatStr = formatStr[..3];
             if (formatStr.Contains("jpg")) formatStr = "jpeg";
