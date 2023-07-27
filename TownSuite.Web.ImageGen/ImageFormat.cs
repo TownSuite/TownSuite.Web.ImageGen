@@ -31,7 +31,6 @@
             if (formatStr.EndsWith("xml")) formatStr = formatStr[..3];
             if (formatStr.Contains("jpg")) formatStr = "jpeg";
             if (formatStr.Contains("heif")) formatStr = "heic";
-            if (formatStr.Contains("svg")) formatStr = "svg";
             return formatStr;
         }
     }
