@@ -19,8 +19,8 @@ public class ImageProxyRepoTest
     public async Task Test1(string imageformat)
     {
         var origImage = await Image.LoadAsync("assets/facility.jpg");
-        Assert.That(origImage.Height, Is.EqualTo(365));
-        Assert.That(origImage.Width, Is.EqualTo(800));
+        Assert.That(origImage.Height, Is.EqualTo(91));
+        Assert.That(origImage.Width, Is.EqualTo(200));
         
         var downloader = new DownloaderFake("image/jpeg");
         var repo = new ImageProxyRepo(downloader, new Settings()
@@ -53,16 +53,16 @@ public class ImageProxyRepoTest
         {
             newImage = await Image.LoadAsync(ms);
         }
-        Assert.That(newImage.Height, Is.EqualTo(333));
-        Assert.That(newImage.Width, Is.EqualTo(333));
+        Assert.That(newImage.Height, Is.EqualTo(91));
+        Assert.That(newImage.Width, Is.EqualTo(200));
     }
 
     [Test, TestCaseSource(nameof(ImageFormatCases))]
     public async Task ImageMaxResizeCanOnlyBeEqualOrLessThanImageOriginalSizeTest(string imageformat)
     {
         var origImage = await Image.LoadAsync("assets/facility.jpg");
-        Assert.That(origImage.Height, Is.EqualTo(365));
-        Assert.That(origImage.Width, Is.EqualTo(800));
+        Assert.That(origImage.Height, Is.EqualTo(91));
+        Assert.That(origImage.Width, Is.EqualTo(200));
         
         var downloader = new DownloaderFake("image/jpeg");
         var repo = new ImageProxyRepo(downloader, new Settings()
@@ -95,8 +95,8 @@ public class ImageProxyRepoTest
         {
             newImage = await Image.LoadAsync(ms);
         }
-        Assert.That(newImage.Height, Is.EqualTo(365));
-        Assert.That(newImage.Width, Is.EqualTo(800));
+        Assert.That(newImage.Height, Is.EqualTo(91));
+        Assert.That(newImage.Width, Is.EqualTo(200));
     }
     
     private (QueryCollection query, string rawQuery) CreateContext(int h, int w,string imgformat)
