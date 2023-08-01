@@ -11,8 +11,8 @@ namespace TownSuite.Web.ImageGen
         {
             if (!Available())
                 throw new Exception("HeifDecoder is not available");
-            if (stream == null || !stream.CanRead)
-                throw new ArgumentException("Invalid stream", nameof(stream));
+            if (!stream.CanRead)
+                throw new ArgumentException("Invalid stream", stream.GetType().Name);
             if (stream.Length < 1)
                 return new Image<Rgba32>(1, 1);
             
