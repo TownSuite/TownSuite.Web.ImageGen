@@ -22,7 +22,7 @@ public class GenerateIdenticonImageRepoTest
             HttpCacheControlMaxAgeInMinutes = 5
         });
         var request = new RequestMetaData();
-        var query = CreateContext(777, 777, imageformat);
+        var query = CreateContext(200, 200, imageformat);
         
         request.GetRequestMetaData(new Settings()
             {
@@ -47,8 +47,8 @@ public class GenerateIdenticonImageRepoTest
         {
             newImage = await Image.LoadAsync(ms);
         }
-        Assert.That(newImage.Height, Is.EqualTo(777));
-        Assert.That(newImage.Width, Is.EqualTo(777));
+        Assert.That(newImage.Height, Is.EqualTo(200));
+        Assert.That(newImage.Width, Is.EqualTo(200));
     }
 
     private (QueryCollection query, string rawQuery) CreateContext(int h, int w,string imgformat)

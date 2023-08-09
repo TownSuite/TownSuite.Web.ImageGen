@@ -16,22 +16,22 @@
         }
         public static bool IsFormat(string formatStr, Format type)
         { 
-            return string.Equals(TrimFormat(formatStr), type.ToString(), StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(ParseFormatString(formatStr), type.ToString(), StringComparison.InvariantCultureIgnoreCase);
         }
         public static Format GetFormat(string formatStr)
         {
-            try { return (Format)Enum.Parse(typeof(Format), TrimFormat(formatStr), true); }
+            try { return (Format)Enum.Parse(typeof(Format), ParseFormatString(formatStr), true); }
             catch { return Format.png; }  
         }
-        private static string TrimFormat(string formatStr)
+        private static string ParseFormatString(string formatStr)
         {
-            if (formatStr.StartsWith("image/"))
-            {
-                formatStr = formatStr[6..];
-            }
+            formatStr = formatStr.Trim();
+            if (formatStr.All(c => !char.IsLetter(c))) return "png";
+            if (formatStr.StartsWith('.')) formatStr = formatStr[1..];
+            if (formatStr.StartsWith("image/")) formatStr = formatStr[6..];
+            if (formatStr.EndsWith("xml")) formatStr = formatStr[..3];
             if (formatStr.Contains("jpg")) formatStr = "jpeg";
-            if (formatStr == "heif") formatStr = "heic";
-            if (formatStr.Contains("svg")) formatStr = "svg";
+            if (formatStr.Contains("heif")) formatStr = "heic";
             return formatStr;
         }
     }
