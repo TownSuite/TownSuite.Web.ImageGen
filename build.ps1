@@ -1,13 +1,13 @@
 #!/usr/bin/env pwsh
 $ErrorActionPreference = "Stop"
-$CURRENTPATH=$pwd.Path
+$CURRENTPATH = $pwd.Path
 
 # Must install powershell:  https://learn.microsoft.com/en-us/powershell/scripting/install/install-ubuntu?view=powershell-7.2
 
 $VERSION = cat TownSuite.Web.ImageGen/TownSuite.Web.ImageGen.csproj | grep "<Version>"  | sed 's/[^0-9.]*//g' 
 rm -rf build
 mkdir -p build
-$GITHASH="$(git rev-parse --short HEAD)"
+$GITHASH = "$(git rev-parse --short HEAD)"
 echo "$GITHASH" >> build/githash.txt
 
 Write-Host "Building townsuite/imagegen:latest" -ForegroundColor Green
