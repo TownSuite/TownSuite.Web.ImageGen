@@ -45,5 +45,7 @@ COPY --from=libheif-build /usr/lib/libgcc_s.so.1 /usr/lib/libgcc_s.so.1
 COPY --from=libheif-build /usr/lib/libnuma.so.1 /usr/lib/libnuma.so.1
 WORKDIR /app
 COPY --from=publish /app/publish .
+RUN mkdir -p /app/wwwroot/cache && \
+    chown -R $APP_UID /app/wwwroot/cache
 USER $APP_UID
 ENTRYPOINT ["dotnet", "TownSuite.Web.ImageGen.dll"]

@@ -11,7 +11,7 @@ $GITHASH = "$(git rev-parse --short HEAD)"
 echo "$GITHASH" >> build/githash.txt
 
 Write-Host "Building townsuite/imagegen:latest" -ForegroundColor Green
-docker build -f "$CURRENTPATH/TownSuite.Web.ImageGen/Dockerfile" -t townsuite/imagegen$GITHASH -m 4GB .
+docker build -f "$CURRENTPATH/TownSuite.Web.ImageGen/Dockerfile" -t townsuite/imagegen$GITHASH .
 
 
 Write-Host "Building imagegen.tar" -ForegroundColor Green
