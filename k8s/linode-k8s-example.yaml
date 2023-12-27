@@ -26,25 +26,29 @@ spec:
       - name: imagegen
         image: townsuite/imagegen:latest
         ports:
-        - containerPort: 80
+        - containerPort: 8080
         livenessProbe:
           httpGet:
             path: /healthz
-            port: 80
+            port: 8080
           initialDelaySeconds: 3
           periodSeconds: 10
         startupProbe:
           httpGet:
             path: /healthz
-            port: 80
+            port: 8080
           initialDelaySeconds: 3
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /healthz
-            port: 80
+            port: 8080
           initialDelaySeconds: 3
           periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+      securityContext:
+        runAsNonRoot: true
       #imagePullSecrets:
       #- name: [Your Secrets Name]
 
@@ -56,8 +60,8 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 80
-    targetPort: 80
+  - port: 8080
+    targetPort: 8080
   selector:
     app: ts-imagegen-app
 ---
