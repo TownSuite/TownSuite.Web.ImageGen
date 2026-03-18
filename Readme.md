@@ -107,9 +107,9 @@ Libheif-sharp requires some DLL files to function on Windows. The DLLs are requi
 
 Place the generated DLLs in the following two folders:
 
-```~\TownSuite.Web.ImageGen\bin\Debug\net6.0``` 
+```~\TownSuite.Web.ImageGen\bin\Debug\net10.0``` 
 
-```~\TownSuite.Web.ImageGen.Tests\bin\Debug\net6.0```
+```~\TownSuite.Web.ImageGen.Tests\bin\Debug\net10.0```
 
 ### ***Important*** You need to install ***"Desktop devlopment with C++"*** in Visual Studio to build these DLLs. (~4 GB)
 
