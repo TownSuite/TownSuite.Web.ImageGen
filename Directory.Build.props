@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <RepositoryUrl>https://github.com/TownSuite/TownSuite.Web.ImageGen</RepositoryUrl>
+    <AssemblyVersion>26.1.0</AssemblyVersion>
+    <FileVersion>26.1.0</FileVersion>
+    <Version>26.1.0</Version>
+    <Company>TownSuite Municipal Software Inc.</Company>
+    <Product>TownSuite Image Proxy and Placeholders</Product>
+    <Copyright>Copyright © TownSuite Municipal Software Inc. 2026</Copyright>
+	<IncludeSymbols>true</IncludeSymbols>
+	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+</Project>
