@@ -9,7 +9,5 @@
     <Company>TownSuite Municipal Software Inc.</Company>
     <Product>TownSuite Image Proxy and Placeholders</Product>
     <Copyright>Copyright © TownSuite Municipal Software Inc. 2026</Copyright>
-	<IncludeSymbols>true</IncludeSymbols>
-	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 </Project>

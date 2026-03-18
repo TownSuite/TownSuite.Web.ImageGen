@@ -6,13 +6,19 @@ EXPOSE 8080
 EXPOSE 8443
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS libheif-build
-RUN apk add --no-cache build-base git cmake yasm perl libde265 libde265-dev x265 x265-dev
+# add nasm and pkgconfig for assembler and pkg-config detection
+RUN apk add --no-cache build-base git cmake yasm nasm pkgconfig perl libde265 libde265-dev x265 x265-dev
 WORKDIR /tmp
-RUN git clone --depth 1 https://aomedia.googlesource.com/aom
+RUN git clone --branch v3.13.1 --depth 1 --single-branch https://aomedia.googlesource.com/aom
 WORKDIR /tmp/aom
-RUN mkdir -p build && cd build && cmake .. && make -j$(nproc) && make install
+# set POSIX / large-file defines so fseeko/ftello are visible on musl
+RUN mkdir -p build && cd build && \
+    cmake -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_FLAGS="-D_XOPEN_SOURCE=700 -D_FILE_OFFSET_BITS=64" \
+          -DCMAKE_CXX_FLAGS="-D_XOPEN_SOURCE=700 -D_FILE_OFFSET_BITS=64" \
+          .. && make -j$(nproc) && make install
 WORKDIR /app
-RUN git clone --depth 1 https://github.com/strukturag/libheif.git
+RUN git clone --branch v1.21.2 --depth 1 --single-branch https://github.com/strukturag/libheif.git
 WORKDIR /app/libheif
 RUN mkdir build
 WORKDIR /app/libheif/build
@@ -22,12 +28,15 @@ RUN cmake \
     -DWITH_LIBDE265=ON \
     -DWITH_X265=ON \
     ..
+
 RUN make -j$(nproc)
 RUN make install
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /src
 COPY ["TownSuite.Web.ImageGen/TownSuite.Web.ImageGen.csproj", "TownSuite.Web.ImageGen/"]
+COPY ["Directory.Packages.props", "Directory.Packages.props"]
+COPY ["Directory.Build.props", "Directory.Build.props"]
 RUN dotnet restore "TownSuite.Web.ImageGen/TownSuite.Web.ImageGen.csproj"
 COPY . .
 WORKDIR "/src/TownSuite.Web.ImageGen"
