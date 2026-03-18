@@ -20,19 +20,21 @@ pipeline {
         }
         stage('Pipeline') {
             agent { label townsuite_automation2.get_ubuntu_label() }
-            stage('Linux Build') {
-                steps {
-                    script {
-                        townsuite.common_environment_configuration()
-                    }
+            stages{
+                stage('Linux Build') {
+                    steps {
+                        script {
+                            townsuite.common_environment_configuration()
+                        }
 
-                    sh '''
-                    ./build.ps1
-                    '''
-                
-                    echo 'archiving artifacts'
-                    script {
-                        townsuite.archiveWithRetryAndLock('build/**/*.tar,build/parameterproperties.txt', 3)
+                        sh '''
+                        ./build.ps1
+                        '''
+                    
+                        echo 'archiving artifacts'
+                        script {
+                            townsuite.archiveWithRetryAndLock('build/**/*.tar,build/parameterproperties.txt', 3)
+                        }
                     }
                 }
             }
