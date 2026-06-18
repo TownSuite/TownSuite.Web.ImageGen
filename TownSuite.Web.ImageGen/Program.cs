@@ -8,6 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
 builder.Services.AddHttpClient();
+// SSRF-hardened client used by the image proxy: no redirect following and a
+// connect-time guard that blocks private/loopback/link-local/metadata addresses.
+builder.Services.AddHttpClient("imageproxy")
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+    {
+        AllowAutoRedirect = false,
+        ConnectCallback = SsrfGuard.ConnectCallback
+    });
 builder.Services.AddScoped<IImageDownloader, ImageDownloader>();
 builder.Services.AddSingleton<Settings>(s => new Settings()
 {

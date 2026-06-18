@@ -58,6 +58,14 @@ public class RequestMetaData
             image_format = "png";
         }
 
+        // Normalize the requested format to a known, safe enum value BEFORE it is
+        // ever used to build a filesystem path. The raw "imgformat" query value is
+        // attacker-controlled and was previously interpolated straight into the cache
+        // path, allowing path-traversal (e.g. imgformat=png/../../../../etc/passwd).
+        // GetFormat returns one of the fixed ImageFormat.Format names (falling back to
+        // png), so it can never contain '/', '\' or ".." separators.
+        string safeFormat = global::TownSuite.Web.ImageGen.ImageFormat.GetFormat(image_format).ToString();
+
         string path;
         if (size == 0)
         {
@@ -66,13 +74,13 @@ public class RequestMetaData
                 throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
             }
 
-            path = System.IO.Path.Combine(cacheFolder, cacheSubFolder, $"{id}_{width}_{height}.{image_format}");
+            path = BuildCachePath(cacheFolder, cacheSubFolder, $"{id}_{width}_{height}.{safeFormat}");
 
             this.Height = height;
             this.Width = width;
             this.Path = path;
             this.Id = id;
-            this.ImageFormat = image_format;
+            this.ImageFormat = safeFormat;
 
             return this;
         }
@@ -82,16 +90,40 @@ public class RequestMetaData
             throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
         }
 
-        path = System.IO.Path.Combine(cacheFolder, cacheSubFolder, $"{id}_{size}_{size}.{image_format}");
+        path = BuildCachePath(cacheFolder, cacheSubFolder, $"{id}_{size}_{size}.{safeFormat}");
 
         this.Height = size;
         this.Width = size;
         this.Path = path;
         this.Id = id;
-        this.ImageFormat = image_format;
+        this.ImageFormat = safeFormat;
 
 
         return this;
+    }
+
+    /// <summary>
+    /// Combines the cache folder, sub-folder and file name, then verifies the resolved
+    /// path stays inside the configured cache folder. Defense-in-depth against path
+    /// traversal in any path segment (the file name is already restricted to a hash plus
+    /// a normalized format, but this guards against future regressions and misconfig).
+    /// </summary>
+    static string BuildCachePath(string cacheFolder, string cacheSubFolder, string fileName)
+    {
+        string cacheRoot = System.IO.Path.GetFullPath(cacheFolder);
+        string fullPath = System.IO.Path.GetFullPath(
+            System.IO.Path.Combine(cacheRoot, cacheSubFolder, fileName));
+
+        string prefix = cacheRoot.EndsWith(System.IO.Path.DirectorySeparatorChar)
+            ? cacheRoot
+            : cacheRoot + System.IO.Path.DirectorySeparatorChar;
+
+        if (!fullPath.StartsWith(prefix, StringComparison.Ordinal))
+        {
+            throw new ArgumentException("Resolved cache path escapes the cache directory.");
+        }
+
+        return fullPath;
     }
 
     static string Hash(string nonHashedString)

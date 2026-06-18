@@ -15,7 +15,11 @@ public class ImageDownloader : IImageDownloader
 
     public async Task<(Stream S, string ContentType)> Download(string srcUrl)
     {
-        var client = _clientFactory.CreateClient();
+        // Reject non-http(s) schemes before doing anything else. The connection-time
+        // SSRF checks (private/loopback/link-local blocking, no redirects) are enforced
+        // by the "imageproxy" named client configured in Program.cs.
+        SsrfGuard.ValidateUrl(srcUrl);
+        var client = _clientFactory.CreateClient("imageproxy");
         using var request = new HttpRequestMessage(HttpMethod.Get, srcUrl);
         request.Headers.Add("User-Agent", _settings.UserAgent);
         
