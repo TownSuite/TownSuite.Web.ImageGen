@@ -15,6 +15,10 @@ builder.Services.AddHttpClient("imageproxy")
     .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
     {
         AllowAutoRedirect = false,
+        // Disable any ambient/system HTTP proxy. Otherwise requests would be tunneled to
+        // the proxy and the connect-time IP checks would validate the proxy's address
+        // instead of the real destination, bypassing the SSRF guard.
+        UseProxy = false,
         ConnectCallback = SsrfGuard.ConnectCallback
     })
     .ConfigureHttpClient((sp, client) =>
@@ -133,7 +137,9 @@ app.MapGet("/proxy/{name}", async (HttpContext ctx, IImageDownloader downloader,
 });
 
 app.UseStaticFiles();
-app.MapHealthChecks("/healthz");
+// Exempt health checks from rate limiting so liveness/readiness probes are never
+// throttled (a 429 to the kubelet would trigger spurious restarts).
+app.MapHealthChecks("/healthz").DisableRateLimiting();
 app.Run();
 
 async Task WriteOutput(HttpContext ctx, ImageMetaData metadata)

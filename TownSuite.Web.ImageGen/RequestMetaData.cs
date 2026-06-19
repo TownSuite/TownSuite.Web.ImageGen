@@ -114,11 +114,13 @@ public class RequestMetaData
         string fullPath = System.IO.Path.GetFullPath(
             System.IO.Path.Combine(cacheRoot, cacheSubFolder, fileName));
 
-        string prefix = cacheRoot.EndsWith(System.IO.Path.DirectorySeparatorChar)
-            ? cacheRoot
-            : cacheRoot + System.IO.Path.DirectorySeparatorChar;
-
-        if (!fullPath.StartsWith(prefix, StringComparison.Ordinal))
+        // Use GetRelativePath rather than a string prefix check: it applies the platform's
+        // path-comparison rules (case-insensitive drive letters on Windows) and correctly
+        // detects escapes via "..", an absolute path, or a different volume.
+        string relative = System.IO.Path.GetRelativePath(cacheRoot, fullPath);
+        if (relative == ".."
+            || relative.StartsWith(".." + System.IO.Path.DirectorySeparatorChar, StringComparison.Ordinal)
+            || System.IO.Path.IsPathRooted(relative))
         {
             throw new ArgumentException("Resolved cache path escapes the cache directory.");
         }
