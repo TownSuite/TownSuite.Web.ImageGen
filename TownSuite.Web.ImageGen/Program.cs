@@ -1,5 +1,6 @@
 using System.Net;
 using System.Security.Cryptography;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.Primitives;
 using TownSuite.Web.ImageGen;
@@ -15,6 +16,11 @@ builder.Services.AddHttpClient("imageproxy")
     {
         AllowAutoRedirect = false,
         ConnectCallback = SsrfGuard.ConnectCallback
+    })
+    .ConfigureHttpClient((sp, client) =>
+    {
+        var s = sp.GetRequiredService<Settings>();
+        client.Timeout = TimeSpan.FromSeconds(s.ProxyTimeoutSeconds > 0 ? s.ProxyTimeoutSeconds : 30);
     });
 builder.Services.AddScoped<IImageDownloader, ImageDownloader>();
 builder.Services.AddSingleton<Settings>(s => new Settings()
@@ -26,7 +32,29 @@ builder.Services.AddSingleton<Settings>(s => new Settings()
     CacheSizeLimitInMiB = builder.Configuration.GetValue<int>("CacheSizeLimitInMiB"),
     HttpCacheControlMaxAgeInMinutes = builder.Configuration.GetValue<int>("HttpCacheControlMaxAgeInMinutes"),
     MaxWidth = builder.Configuration.GetValue<int>("MaxWidth"),
-    UserAgent = builder.Configuration.GetValue<string>("UserAgent")
+    UserAgent = builder.Configuration.GetValue<string>("UserAgent"),
+    MaxDownloadSizeInMiB = builder.Configuration.GetValue<int>("MaxDownloadSizeInMiB"),
+    ProxyTimeoutSeconds = builder.Configuration.GetValue<int>("ProxyTimeoutSeconds"),
+    MaxSourceImagePixels = builder.Configuration.GetValue<long>("MaxSourceImagePixels")
+});
+
+// Rate limiting (DoS / abuse protection). Partitioned by client IP with a fixed window.
+// NOTE: behind a reverse proxy / k8s ingress, enable ForwardedHeaders middleware with a
+// trusted-proxy configuration so RemoteIpAddress reflects the real client rather than the
+// proxy; otherwise all traffic shares one partition.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var key = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 60,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0
+        });
+    });
 });
 
 builder.Services.AddHostedService<BackgroundWorkerService>();
@@ -46,11 +74,30 @@ else
             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
             context.Response.ContentType = "text/plain";
 
-            var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-            await context.Response.WriteAsync(exceptionHandlerPathFeature?.Error.Message ?? "");
+            // Do NOT echo the exception message to the client: it can leak internal
+            // details (cache paths, resolved internal IPs from SSRF checks, downstream
+            // hostnames) and acts as a recon oracle. Log the real error server-side and
+            // return a generic message instead.
+            var feature = context.Features.Get<IExceptionHandlerPathFeature>();
+            if (feature?.Error is not null)
+            {
+                var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+                logger.LogError(feature.Error, "Unhandled error processing {Path}", feature.Path);
+            }
+
+            await context.Response.WriteAsync("An error occurred while processing the request.");
         });
     });
 }
+
+// Defense-in-depth: prevent MIME-type sniffing on every response.
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    await next();
+});
+
+app.UseRateLimiter();
 
 app.MapGet("/avatar/{name}", async (HttpContext ctx, Settings config) =>
 {
@@ -91,12 +138,28 @@ app.Run();
 
 async Task WriteOutput(HttpContext ctx, ImageMetaData metadata)
 {
-    ctx.Response.Headers.Add("Content-Type", metadata.ContentType);
-    ctx.Response.Headers.Add("Expires",  DateTime.UtcNow.Add(metadata.Expires).ToString("R"));
-    ctx.Response.Headers.Add("Cache-Control", $"max-age={metadata.Expires.TotalSeconds}");
-    ctx.Response.Headers.Add("Content-Length", metadata.ContentLength.ToString());
-    ctx.Response.Headers.Add("Last-Modified", metadata.LastModifiedUtc.ToUniversalTime().ToString("R"));
-    ctx.Response.Headers.Add("Content-Disposition", $"inline; filename=\"{metadata.Filename}\"");
-    await using var fs = new FileStream(metadata.FullFilePath, FileMode.Open);
+    var headers = ctx.Response.Headers;
+    headers["Content-Type"] = metadata.ContentType;
+    headers["Expires"] = DateTime.UtcNow.Add(metadata.Expires).ToString("R");
+    headers["Cache-Control"] = $"max-age={metadata.Expires.TotalSeconds}";
+    headers["Content-Length"] = metadata.ContentLength.ToString();
+    headers["Last-Modified"] = metadata.LastModifiedUtc.ToUniversalTime().ToString("R");
+
+    // SVG can carry active content (scripts / event handlers). Force a download and
+    // sandbox it so it is never rendered inline in the service's origin (stored-XSS
+    // prevention). Other image types are safe to display inline.
+    bool isSvg = metadata.ContentType is not null &&
+                 metadata.ContentType.Contains("svg", StringComparison.OrdinalIgnoreCase);
+    if (isSvg)
+    {
+        headers["Content-Disposition"] = $"attachment; filename=\"{metadata.Filename}\"";
+        headers["Content-Security-Policy"] = "default-src 'none'; sandbox";
+    }
+    else
+    {
+        headers["Content-Disposition"] = $"inline; filename=\"{metadata.Filename}\"";
+    }
+
+    await using var fs = new FileStream(metadata.FullFilePath, FileMode.Open, FileAccess.Read);
     await fs.CopyToAsync(ctx.Response.Body);
 }

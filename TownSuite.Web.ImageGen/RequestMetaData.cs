@@ -128,9 +128,12 @@ public class RequestMetaData
 
     static string Hash(string nonHashedString)
     {
-        using var md5 = MD5.Create();
+        // SHA-256 (not MD5): MD5 is collision-broken, which for a cache key means an
+        // attacker could craft two distinct inputs that map to the same cache file and
+        // poison/confuse cached content. This value is only a cache key/filename, so a
+        // plain (non-salted) cryptographic hash is appropriate.
         byte[] data = System.Text.Encoding.UTF8.GetBytes(nonHashedString);
-        byte[] retVal = md5.ComputeHash(data);
-        return BitConverter.ToString(retVal);
+        byte[] retVal = SHA256.HashData(data);
+        return Convert.ToHexString(retVal);
     }
 }
