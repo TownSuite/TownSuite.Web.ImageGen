@@ -29,4 +29,24 @@ public class HeifDecodeTest
             Assert.That(image.Width, Is.EqualTo(1));
         });
     }
+
+    private static bool HeifAvailable()
+    {
+        // HeifDecoder.Available() throws (rather than returning false) when the native
+        // libheif library can't be loaded, so guard it for machines without the codec.
+        try { return HeifDecoder.Available(); }
+        catch { return false; }
+    }
+
+    [TestCase("avif"), TestCase("heic")]
+    public async Task ConvertHeifToSharp_ThrowsWhenSourceExceedsMaxPixels(string imageformat)
+    {
+        Assume.That(HeifAvailable(), "libheif decoder not available on this machine");
+
+        var imageName = $"assets/{imageformat}_test.{imageformat}";
+        using var ms = new MemoryStream(await File.ReadAllBytesAsync(imageName));
+
+        // The test assets are 200x200 = 40,000 px; a cap of 1 must be rejected before decode.
+        Assert.Throws<InvalidOperationException>(() => HeifDecoder.ConvertHeifToSharp(ms, maxPixels: 1));
+    }
 }

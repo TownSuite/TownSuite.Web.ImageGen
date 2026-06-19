@@ -56,6 +56,7 @@ public class SsrfGuardTest
     [TestCase("1.1.1.1", false)]             // public
     [TestCase("93.184.216.34", false)]       // public (example.com)
     // IPv6
+    [TestCase("::", true)]                   // unspecified (IPv6 equivalent of 0.0.0.0)
     [TestCase("::1", true)]                  // loopback
     [TestCase("fe80::1", true)]              // link-local
     [TestCase("fc00::1", true)]              // unique local (fc00::/7)

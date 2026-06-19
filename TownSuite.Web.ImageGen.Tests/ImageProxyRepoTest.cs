@@ -99,6 +99,33 @@ public class ImageProxyRepoTest
         Assert.That(newImage.Width, Is.EqualTo(200));
     }
     
+    [Test]
+    public void ExceedingMaxSourceImagePixels_ThrowsBeforeDecode()
+    {
+        // facility.jpg is 200x91 = 18,200 px; a cap of 100 must be rejected.
+        var downloader = new DownloaderFake("image/jpeg");
+        var repo = new ImageProxyRepo(downloader, new Settings()
+        {
+            HttpCacheControlMaxAgeInMinutes = 5,
+            MaxSourceImagePixels = 100
+        });
+        var request = new ImageProxyRequestMetaData();
+        var query = CreateContext(50, 50, "png");
+
+        request.GetRequestMetaData(new Settings()
+            {
+                CacheFolder = "cache/folder/",
+                MaxHeight = 1000,
+                MaxWidth = 1000
+            },
+            query.query,
+            query.rawQuery,
+            "/proxy/assets%2Ffacility.jpg",
+            "test_output");
+
+        Assert.ThrowsAsync<InvalidOperationException>(async () => await repo.Get(request));
+    }
+
     private (QueryCollection query, string rawQuery) CreateContext(int h, int w,string imgformat)
     {
         var queries = new Dictionary<string, StringValues>

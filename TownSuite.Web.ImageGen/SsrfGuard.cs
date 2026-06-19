@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
@@ -66,12 +67,45 @@ public static class SsrfGuard
             }
         }
 
-        var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
+        // Create a socket that can reach the validated address(es). Prefer an IPv6
+        // dual-mode socket (handles AAAA records and, via IPv4-mapped addresses, A records);
+        // fall back to IPv4 when the OS has no IPv6 support. A plain
+        // new Socket(SocketType, ProtocolType) would fail for IPv6-only destinations.
+        Socket socket;
+        IPAddress[] connectAddresses;
+        if (Socket.OSSupportsIPv6)
+        {
+            socket = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp)
+            {
+                DualMode = true,
+                NoDelay = true
+            };
+            connectAddresses = addresses
+                .Select(a => a.AddressFamily == AddressFamily.InterNetwork ? a.MapToIPv6() : a)
+                .ToArray();
+        }
+        else
+        {
+            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+            {
+                NoDelay = true
+            };
+            connectAddresses = addresses
+                .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
+                .ToArray();
+
+            if (connectAddresses.Length == 0)
+            {
+                socket.Dispose();
+                throw new IOException($"Host '{host}' has no reachable IPv4 address.");
+            }
+        }
+
         try
         {
             // Connect to the validated address(es) directly so the destination cannot
             // change between validation and the actual connection (DNS rebinding).
-            await socket.ConnectAsync(addresses, port, cancellationToken);
+            await socket.ConnectAsync(connectAddresses, port, cancellationToken);
             return new NetworkStream(socket, ownsSocket: true);
         }
         catch
@@ -94,6 +128,13 @@ public static class SsrfGuard
         }
 
         if (IPAddress.IsLoopback(address))
+        {
+            return true;
+        }
+
+        // IPv6 unspecified address (:: / IPAddress.IPv6Any) — the IPv6 equivalent of
+        // 0.0.0.0; must be rejected (the IPv4 0.0.0.0/8 case is handled below).
+        if (address.Equals(IPAddress.IPv6Any))
         {
             return true;
         }

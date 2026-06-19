@@ -65,6 +65,15 @@ builder.Services.AddHostedService<BackgroundWorkerService>();
 
 var app = builder.Build();
 
+// Ensure the cache directory exists at startup so the background cleanup service and the
+// cache writer don't error on first run — important for local / non-Docker deployments
+// where the configured path (e.g. relative "cache") may not exist yet.
+var startupSettings = app.Services.GetRequiredService<Settings>();
+if (!string.IsNullOrWhiteSpace(startupSettings.CacheFolder))
+{
+    Directory.CreateDirectory(startupSettings.CacheFolder);
+}
+
 if (builder.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -77,6 +86,9 @@ else
         {
             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
             context.Response.ContentType = "text/plain";
+            // UseExceptionHandler clears headers set by downstream middleware, so re-apply
+            // the nosniff header here to keep it on error responses too.
+            context.Response.Headers["X-Content-Type-Options"] = "nosniff";
 
             // Do NOT echo the exception message to the client: it can leak internal
             // details (cache paths, resolved internal IPs from SSRF checks, downstream
@@ -147,7 +159,7 @@ async Task WriteOutput(HttpContext ctx, ImageMetaData metadata)
     var headers = ctx.Response.Headers;
     headers["Content-Type"] = metadata.ContentType;
     headers["Expires"] = DateTime.UtcNow.Add(metadata.Expires).ToString("R");
-    headers["Cache-Control"] = $"max-age={metadata.Expires.TotalSeconds}";
+    headers["Cache-Control"] = $"max-age={(long)metadata.Expires.TotalSeconds}";
     headers["Content-Length"] = metadata.ContentLength.ToString();
     headers["Last-Modified"] = metadata.LastModifiedUtc.ToUniversalTime().ToString("R");
 
