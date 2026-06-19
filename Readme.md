@@ -25,8 +25,10 @@ The default image format is png.
 
 # Appsettings.json
 
-1. "CacheFolder": "wwwroot/cache",
-    * The base folder to store cached images.
+1. "CacheFolder": "cache",
+    * The base folder to store cached images. Keep this **outside** of `wwwroot` so cached
+      content is not served directly as static files (it is served only through the
+      application endpoints, with the correct headers).
 2. "CacheBackgroundCleanupTimerSeconds": 300,
     * How many seconds are between background cleanup runs.
 3. "CacheMaxLifeTimeMinutes": 1440,
@@ -37,8 +39,20 @@ The default image format is png.
     * The max width that can be requested for an image resize.
 6. "MaxHeight": 2000,
     * The max height that can be requested for an image resize.
-7. "UserAgent": "TownSuiteImageGen/1.0 Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0"
+7. "MaxDownloadSizeInMiB": 55,
+    * The maximum size of a remote response the image proxy will download. Protects
+      against memory-exhaustion / open-proxy abuse.
+8. "ProxyTimeoutSeconds": 30,
+    * Timeout for a single proxied download.
+9. "MaxSourceImagePixels": 100000000,
+    * The maximum number of pixels (width × height) allowed in a *source* image before it
+      is decoded. Protects against decompression / pixel bombs. Set to 0 to disable.
+10. "UserAgent": "TownSuiteImageGen/1.0 Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0"
     * The user agent that will be used in the image proxy.
+
+The image proxy also enforces SSRF protections (only http/https, no redirects, and
+private/loopback/link-local/cloud-metadata addresses are blocked) and per-client rate
+limiting (default 60 requests/minute/IP).
 
 
 # Identicon example

@@ -7,7 +7,7 @@ namespace TownSuite.Web.ImageGen
 {
     public static class HeifDecoder
     {
-        public static Image<Rgba32> ConvertHeifToSharp(Stream stream)
+        public static Image<Rgba32> ConvertHeifToSharp(Stream stream, long maxPixels = 0)
         {
             if (!Available())
                 throw new Exception("HeifDecoder is not available");
@@ -15,9 +15,14 @@ namespace TownSuite.Web.ImageGen
                 throw new ArgumentException("Invalid stream", stream.GetType().Name);
             if (stream.Length < 1)
                 return new Image<Rgba32>(1, 1);
-            
+
             using var heifContext = new HeifContext(stream);
             using HeifImageHandle srcImageHandle = heifContext.GetPrimaryImageHandle();
+
+            // Reject decompression/pixel bombs before decoding into a full RGBA buffer.
+            if (maxPixels > 0 && (long)srcImageHandle.Width * srcImageHandle.Height > maxPixels)
+                throw new InvalidOperationException("Source image exceeds the maximum allowed pixel dimensions.");
+
             using HeifImage srcImage = srcImageHandle.Decode(HeifColorspace.Rgb, HeifChroma.InterleavedRgba32);
 
             var outImage = new Image<Rgba32>(srcImage.Width, srcImage.Height);

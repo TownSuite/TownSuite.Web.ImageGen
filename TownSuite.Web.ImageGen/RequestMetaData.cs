@@ -58,6 +58,14 @@ public class RequestMetaData
             image_format = "png";
         }
 
+        // Normalize the requested format to a known, safe enum value BEFORE it is
+        // ever used to build a filesystem path. The raw "imgformat" query value is
+        // attacker-controlled and was previously interpolated straight into the cache
+        // path, allowing path-traversal (e.g. imgformat=png/../../../../etc/passwd).
+        // GetFormat returns one of the fixed ImageFormat.Format names (falling back to
+        // png), so it can never contain '/', '\' or ".." separators.
+        string safeFormat = global::TownSuite.Web.ImageGen.ImageFormat.GetFormat(image_format).ToString();
+
         string path;
         if (size == 0)
         {
@@ -66,13 +74,13 @@ public class RequestMetaData
                 throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
             }
 
-            path = System.IO.Path.Combine(cacheFolder, cacheSubFolder, $"{id}_{width}_{height}.{image_format}");
+            path = BuildCachePath(cacheFolder, cacheSubFolder, $"{id}_{width}_{height}.{safeFormat}");
 
             this.Height = height;
             this.Width = width;
             this.Path = path;
             this.Id = id;
-            this.ImageFormat = image_format;
+            this.ImageFormat = safeFormat;
 
             return this;
         }
@@ -82,23 +90,52 @@ public class RequestMetaData
             throw new Exception($"Max allowable width is {maxWidth} and max allowable height is {maxHeight}");
         }
 
-        path = System.IO.Path.Combine(cacheFolder, cacheSubFolder, $"{id}_{size}_{size}.{image_format}");
+        path = BuildCachePath(cacheFolder, cacheSubFolder, $"{id}_{size}_{size}.{safeFormat}");
 
         this.Height = size;
         this.Width = size;
         this.Path = path;
         this.Id = id;
-        this.ImageFormat = image_format;
+        this.ImageFormat = safeFormat;
 
 
         return this;
     }
 
+    /// <summary>
+    /// Combines the cache folder, sub-folder and file name, then verifies the resolved
+    /// path stays inside the configured cache folder. Defense-in-depth against path
+    /// traversal in any path segment (the file name is already restricted to a hash plus
+    /// a normalized format, but this guards against future regressions and misconfig).
+    /// </summary>
+    static string BuildCachePath(string cacheFolder, string cacheSubFolder, string fileName)
+    {
+        string cacheRoot = System.IO.Path.GetFullPath(cacheFolder);
+        string fullPath = System.IO.Path.GetFullPath(
+            System.IO.Path.Combine(cacheRoot, cacheSubFolder, fileName));
+
+        // Use GetRelativePath rather than a string prefix check: it applies the platform's
+        // path-comparison rules (case-insensitive drive letters on Windows) and correctly
+        // detects escapes via "..", an absolute path, or a different volume.
+        string relative = System.IO.Path.GetRelativePath(cacheRoot, fullPath);
+        if (relative == ".."
+            || relative.StartsWith(".." + System.IO.Path.DirectorySeparatorChar, StringComparison.Ordinal)
+            || System.IO.Path.IsPathRooted(relative))
+        {
+            throw new ArgumentException("Resolved cache path escapes the cache directory.");
+        }
+
+        return fullPath;
+    }
+
     static string Hash(string nonHashedString)
     {
-        using var md5 = MD5.Create();
+        // SHA-256 (not MD5): MD5 is collision-broken, which for a cache key means an
+        // attacker could craft two distinct inputs that map to the same cache file and
+        // poison/confuse cached content. This value is only a cache key/filename, so a
+        // plain (non-salted) cryptographic hash is appropriate.
         byte[] data = System.Text.Encoding.UTF8.GetBytes(nonHashedString);
-        byte[] retVal = md5.ComputeHash(data);
-        return BitConverter.ToString(retVal);
+        byte[] retVal = SHA256.HashData(data);
+        return Convert.ToHexString(retVal);
     }
 }

@@ -45,10 +45,45 @@ spec:
             port: 8080
           initialDelaySeconds: 3
           periodSeconds: 10
+        # Resource limits cap the blast radius of the proxy's DoS surface (large
+        # downloads + image decoding) so one pod cannot exhaust the node. Size the
+        # memory limit relative to the app's MaxSourceImagePixels setting (a decoded
+        # RGBA image uses roughly pixels * 4 bytes) times expected concurrency;
+        # over-limit requests get the pod OOMKilled rather than starving the node.
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+          limits:
+            cpu: "2"
+            memory: "1Gi"
         securityContext:
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        # The root filesystem is read-only; the app needs writable scratch space for
+        # its image cache and for temp files.
+        - name: cache
+          mountPath: /app/cache
+        - name: tmp
+          mountPath: /tmp
       securityContext:
         runAsNonRoot: true
+        # 1654 is the non-root UID/GID baked into the .NET (APP_UID) base image.
+        # fsGroup makes the emptyDir volumes writable by that user.
+        runAsUser: 1654
+        runAsGroup: 1654
+        fsGroup: 1654
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+      - name: cache
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
       #imagePullSecrets:
       #- name: [Your Secrets Name]
 

@@ -36,10 +36,21 @@ public class ImageProxyRepo : IImageRepository
         if (ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.avif)
             || ImageFormat.IsFormat(result.ContentType, ImageFormat.Format.heic))
         {
-            img = HeifDecoder.ConvertHeifToSharp(downloadStream);
+            img = HeifDecoder.ConvertHeifToSharp(downloadStream, _settings.MaxSourceImagePixels);
         }
         else
         {
+            // Check the source dimensions cheaply (without decoding pixels) and reject
+            // decompression/pixel bombs before allocating the full image.
+            var info = await Image.IdentifyAsync(downloadStream);
+            if (downloadStream.CanSeek)
+            {
+                downloadStream.Position = 0;
+            }
+            if (info is not null)
+            {
+                EnsureWithinPixelLimit(info.Width, info.Height);
+            }
             img = await Image.LoadAsync(downloadStream);
         }
 
@@ -79,5 +90,14 @@ public class ImageProxyRepo : IImageRepository
     {
         return proxyRequest.Height <= img.Height && proxyRequest.Width <= img.Width;
     }
-    
+
+    private void EnsureWithinPixelLimit(int width, int height)
+    {
+        long maxPixels = _settings.MaxSourceImagePixels;
+        if (maxPixels > 0 && (long)width * height > maxPixels)
+        {
+            throw new InvalidOperationException("Source image exceeds the maximum allowed pixel dimensions.");
+        }
+    }
+
 }
