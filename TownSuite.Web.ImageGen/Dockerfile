@@ -53,7 +53,15 @@ RUN dotnet restore "TownSuite.Web.ImageGen/TownSuite.Web.ImageGen.csproj"
 # Supply-chain gate: fail the build if any direct or transitive NuGet package has a
 # known security advisory. NuGetAudit in Directory.Build.props also enforces this during
 # restore; this step surfaces the finding explicitly in CI logs.
-RUN dotnet list "TownSuite.Web.ImageGen/TownSuite.Web.ImageGen.csproj" package --vulnerable --include-transitive 2>&1 | tee /tmp/vuln.txt && \
+# Note: Alpine /bin/sh has no `pipefail`, so a `| tee` pipeline would mask a failing
+# `dotnet list`. Redirect to a file and check its exit status explicitly instead, so the
+# build fails both when the command errors and when a vulnerable package is reported.
+RUN dotnet list "TownSuite.Web.ImageGen/TownSuite.Web.ImageGen.csproj" package --vulnerable --include-transitive > /tmp/vuln.txt 2>&1; \
+    status=$?; \
+    cat /tmp/vuln.txt; \
+    if [ "$status" -ne 0 ]; then \
+      echo "ERROR: 'dotnet list package --vulnerable' failed (exit $status)." >&2; exit "$status"; \
+    fi; \
     if grep -q "has the following vulnerable packages" /tmp/vuln.txt; then \
       echo "ERROR: vulnerable NuGet packages detected (see list above)." >&2; exit 1; \
     fi
