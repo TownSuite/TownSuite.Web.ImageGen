@@ -81,7 +81,14 @@ COPY --from=libheif-build /usr/lib/libgcc_s.so.1 /usr/lib/libgcc_s.so.1
 COPY --from=libheif-build /usr/lib/libnuma.so.1 /usr/lib/libnuma.so.1
 WORKDIR /app
 COPY --from=publish /app/publish .
+# In environments that run the container with a random, arbitrary UID that is NOT $APP_UID,
+# but that UID is always a member of the root group (GID 0). So instead of relying
+# on $APP_UID owning the cache dir, make it is owned by the root group and group-writable
+# (and set the setgid bit so subdirectories the app creates inherit GID 0). This works
+# both on plain Docker (running as $APP_UID) and within random UID environments (arbitrary UID in GID 0).
 RUN mkdir -p /app/cache && \
-    chown -R $APP_UID /app/cache
+    chown -R $APP_UID:0 /app/cache && \
+    chmod -R g=u /app/cache && \
+    chmod g+s /app/cache
 USER $APP_UID
 ENTRYPOINT ["dotnet", "TownSuite.Web.ImageGen.dll"]
