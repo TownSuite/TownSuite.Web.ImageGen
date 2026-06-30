@@ -29,7 +29,7 @@ builder.Services.AddHttpClient("imageproxy")
 builder.Services.AddScoped<IImageDownloader, ImageDownloader>();
 builder.Services.AddSingleton<Settings>(s => new Settings()
 {
-    CacheFolder = ResolveCacheFolder(builder.Configuration.GetValue<string>("CacheFolder")),
+    CacheFolder = builder.Configuration.GetValue<string>("CacheFolder"),
     MaxHeight = builder.Configuration.GetValue<int>("MaxHeight"),
     CacheBackgroundCleanupTimerSeconds = builder.Configuration.GetValue<int>("CacheBackgroundCleanupTimerSeconds"),
     CacheMaxLifeTimeMinutes = builder.Configuration.GetValue<int>("CacheMaxLifeTimeMinutes"),
@@ -153,29 +153,6 @@ app.UseStaticFiles();
 // throttled (a 429 to the kubelet would trigger spurious restarts).
 app.MapHealthChecks("/healthz").DisableRateLimiting();
 app.Run();
-
-// Resolves the effective on-disk cache folder from configuration.
-//   * A normal path (e.g. "cache", "/data/cache") is used as-is.
-//   * A blank value, or the sentinel "$TEMP" (case-insensitive), means "give me an
-//     EPHEMERAL, PRIVATE per-process cache directory under the system temp path".
-//
-// The private temp directory is created with Directory.CreateTempSubdirectory, which on
-// Unix sets owner-only (0700) permissions. That makes it accessible ONLY to the UID the
-// process actually runs as — so it works even under an OpenShift custom SCC that assigns
-// an arbitrary UID that is NOT a member of the root group (GID 0). The name is unique per
-// process, so multiple replicas/pods never collide. The system temp path honours the
-// TMPDIR environment variable (defaults to /tmp), so the location is itself configurable
-// without code or image changes.
-static string ResolveCacheFolder(string? configured)
-{
-    if (!string.IsNullOrWhiteSpace(configured)
-        && !configured.Trim().Equals("$TEMP", StringComparison.OrdinalIgnoreCase))
-    {
-        return configured;
-    }
-
-    return Directory.CreateTempSubdirectory("townsuite-imagegen-").FullName;
-}
 
 async Task WriteOutput(HttpContext ctx, ImageMetaData metadata)
 {

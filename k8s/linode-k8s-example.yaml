@@ -74,12 +74,25 @@ spec:
         runAsNonRoot: true
         # 1654 is the non-root UID/GID baked into the .NET (APP_UID) base image.
         # fsGroup makes the emptyDir volumes writable by that user.
+        #
+        # OpenShift note: under the default `restricted-v2` SCC, OpenShift ignores
+        # runAsUser/runAsGroup and assigns a random UID (in GID 0) plus its own fsGroup.
+        # That is fine — the writable volumes below are the actual fix, and OpenShift's
+        # fsGroup makes the emptyDir mounts group-writable regardless of the UID. On
+        # OpenShift you can simply drop runAsUser/runAsGroup/fsGroup and let the platform
+        # assign them; keep them for plain Kubernetes (Linode/LKE) as shown here.
         runAsUser: 1654
         runAsGroup: 1654
         fsGroup: 1654
         seccompProfile:
           type: RuntimeDefault
       volumes:
+      # Writable scratch space provided as volumes so the container root filesystem can stay
+      # read-only (readOnlyRootFilesystem: true above). The image cache is written here
+      # instead of to the image layer, which (a) keeps the rootfs read-only as a hardening
+      # control and (b) avoids the "Permission denied" failure when the container runs as a
+      # UID that does not own /app/cache (e.g. OpenShift's arbitrary UID).
+      # Swap `emptyDir` for a persistentVolumeClaim if the cache should survive restarts.
       - name: cache
         emptyDir: {}
       - name: tmp
