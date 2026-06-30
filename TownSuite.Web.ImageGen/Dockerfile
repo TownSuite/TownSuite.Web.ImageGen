@@ -81,6 +81,9 @@ COPY --from=libheif-build /usr/lib/libgcc_s.so.1 /usr/lib/libgcc_s.so.1
 COPY --from=libheif-build /usr/lib/libnuma.so.1 /usr/lib/libnuma.so.1
 WORKDIR /app
 COPY --from=publish /app/publish .
+# The cache directory is provided at runtime by a writable volume mounted over /app/cache
+# (see k8s/linode-k8s-example.yaml). We still create it here so the image also works under
+# plain `docker run` without a mount.
 RUN mkdir -p /app/cache && \
     chown -R $APP_UID /app/cache
 USER $APP_UID
